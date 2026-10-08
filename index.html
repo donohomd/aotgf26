@@ -1,0 +1,2284 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#000000">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<meta name="apple-mobile-web-app-title" content="Monteleone Guitar Festival">
+<script>
+// Start reading the schedule data right away, in parallel with the rest of the
+// page. The stored copy (from an earlier visit) is used first so the schedule
+// opens instantly and works offline; the network is used when there is none.
+// A background check later fetches a newer published version if one exists.
+(function(){
+  var base = new URL('./', document.baseURI).href;
+  window.ROTAPAS_FILES = {
+    data: base + 'schedule.json',
+    version: base + 'version.json',
+    dataCache: 'rotapas-data:' + base      // must match sw.js
+  };
+  window.ROTAPAS_INITIAL = (async function(){
+    // A preview always shows the current draft, never a stored copy (N30).
+    if ('caches' in window && !window.ROTAPAS_PREVIEW){
+      try {
+        var cache = await caches.open(ROTAPAS_FILES.dataCache);
+        var hit = await cache.match(ROTAPAS_FILES.data);
+        if (hit) return { text: await hit.text(), source: 'cache' };
+      } catch(e){}
+    }
+    var res = await fetch(ROTAPAS_FILES.data);
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    return { text: await res.text(), source: 'network' };
+  })();
+})();
+</script>
+<title>Monteleone: Art of the Guitar Festival — Schedule (True Black)</title>
+<style>
+  /* ===== Design tokens: the ONLY place colors are defined =====
+     Semantic names say what a color is FOR. The values below are the shipped
+     RMAF appearance; the publish compiler replaces them with each event's.
+     Several tokens intentionally share a value today (the accent and venue 1
+     are both the festival gold; the price color matches venue 9). They are
+     separate because they mean different things, so a future appearance can
+     change one without the other. tokens:start */
+  :root{
+    /* Surfaces */
+    --color-page: #000000;                        /* page background */
+    --color-page-glow-1: rgba(0,0,0,0);   /* warm glow, top left */
+    --color-page-glow-2: rgba(0,0,0,0);   /* cool glow, top right */
+    --color-surface: #0f0f11;                     /* raised controls: tabs, sort, chips, search */
+    --color-card: #151517;                        /* session and luthier cards */
+    --color-card-live-fallback: #1b1b1e;          /* live card tint where color-mix() is unsupported */
+    --color-border: #2e2e33;                      /* borders and dividers */
+    --color-shadow: rgba(0,0,0,0.6);             /* floating notice shadow */
+
+    /* Text */
+    --color-text: #f2f2f4;                        /* primary text */
+    --color-text-secondary: #b8bcc6;              /* secondary text */
+    --color-text-faint: #8e929c;                  /* faint labels, quiet icons */
+
+    /* Brand and interaction */
+    --color-accent: #c9a13a;                      /* date line, active tab, stars, luthier cards, links */
+    --color-focus: var(--color-accent);           /* keyboard focus ring */
+    --color-price: #e77e90;                       /* ticket prices */
+
+    /* Status */
+    --color-warning: #e2a53a;                     /* offline status, test clock border. Also declared for conflict
+                                                     warnings, but a more specific rule overrides it there: see
+                                                     apps/renderer/KNOWN-ISSUES.md #1 (kept as shipped) */
+    --color-dev-banner-bg: #3a2a0c;               /* ?now= test clock banner (development only) */
+    --color-dev-banner-text: #f3d9a4;
+
+    /* Venue colors: functional, one per venue slot. The per-element
+       --venue-color is set from these (see VENUE_COLOR in the script). */
+    --venue-1: #dfb459;
+    --venue-2: #94adfe;
+    --venue-3: #ee92b8;
+    --venue-4: #69ebd4;
+    --venue-5: #efbbff;
+    --venue-6: #a2b85c;
+    --venue-7: #7fd091;
+    --venue-8: #c7dd81;
+    --venue-9: #d998de;
+    /* tokens:end */
+
+    --font-sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+  }
+
+  *{ box-sizing: border-box; }
+  html{ -webkit-text-size-adjust: 100%; }
+
+  body{
+    margin:0;
+    background: var(--color-page);
+    background-image:
+      radial-gradient(ellipse 900px 500px at 15% -10%, var(--color-page-glow-1), transparent 60%),
+      radial-gradient(ellipse 700px 500px at 100% 0%, var(--color-page-glow-2), transparent 55%);
+    color: var(--color-text);
+    font-family: 'Iowan Old Style', 'Palatino Linotype', Georgia, 'Times New Roman', serif;
+    min-height: 100vh;
+  }
+
+  .sans{ font-family: var(--font-sans); }
+
+  header.top{
+    padding: 1.8rem 1.5rem 1rem;
+    max-width: 980px;
+    margin: 0 auto;
+    border-bottom: 1px solid var(--color-border);
+  }
+
+  .top-brand-row{
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.7rem;
+  }
+
+  .site-logo{
+    display: block;
+    flex-shrink: 0;
+    width: 216px;
+    opacity: 0.9;
+    transition: opacity 0.15s ease;
+  }
+  .site-logo:hover{ opacity: 1; }
+  .site-logo img{
+    display: block;
+    width: 100%;
+    height: auto;
+  }
+
+  .top-brand-row .eyebrow{ margin: 0; font-size: 0.8rem; }
+  /* No logo: the event's name, then "Dates · Location". Never a placeholder. */
+  .top-brand-row .site-name{ margin: 0; padding-right: 2.6rem; }
+  /* With a website, the name is the way back to it: same look, no underline, a visible focus ring. */
+  .site-name-link{ color: inherit; text-decoration: none; }
+  .site-name-link:focus-visible{ outline: 2px solid var(--color-focus); outline-offset: 3px; border-radius: 2px; }
+
+  /* Search (step 3g): an on-demand control, not a tab or a standing field. It
+     searches what is on screen: a browse view's own entries, else every session. */
+  /* A zero-height anchor, so the header itself stays exactly as it was. */
+  .search-anchor{ position: relative; height: 0; }
+  .search-toggle{
+    position: absolute;
+    top: -0.3rem;
+    right: -0.3rem;
+    width: 2.25rem;
+    height: 2.25rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: 50%;
+    color: var(--color-text-secondary);
+    cursor: pointer;
+    transition: color 0.15s ease, border-color 0.15s ease;
+  }
+  .search-toggle:hover, .search-toggle[aria-expanded="true"]{ color: var(--color-text); border-color: var(--color-accent); }
+
+  .eyebrow{
+    font-family: var(--font-sans);
+    font-size: 0.72rem;
+    letter-spacing: 0.08em;
+    color: var(--color-accent);
+    margin: 0 0 0.5rem;
+  }
+
+  h1{
+    font-size: clamp(1.8rem, 4.2vw, 2.7rem);
+    font-weight: 400;
+    line-height: 1.08;
+    margin: 0 0 0.55rem;
+    letter-spacing: -0.01em;
+  }
+
+  .sub{
+    font-family: var(--font-sans);
+    color: var(--color-text-secondary);
+    font-size: 0.92rem;
+    margin: 0;
+    max-width: 62ch;
+  }
+
+  .shell{
+    max-width: 980px;
+    margin: 0 auto;
+    padding: 0 1.5rem 4rem;
+  }
+
+  /* ---------- Sort-by segmented control ---------- */
+  .sort-row{
+    display:flex;
+    align-items:center;
+    gap: 0.6rem;
+    margin: 1.1rem 0 1.1rem;
+    font-family: var(--font-sans);
+  }
+
+  .sort-label{
+    font-size: 0.72rem;
+    letter-spacing: 0.04em;
+    color: var(--color-text-faint);
+  }
+
+  .segmented{
+    display:inline-flex;
+    border: 1px solid var(--color-border);
+    border-radius: 5px;
+    overflow-x: auto;
+    max-width: 100%;
+    min-width: 0;
+  }
+
+  .segmented button{
+    background: var(--color-surface);
+    border: none;
+    color: var(--color-text-secondary);
+    font-family: inherit;
+    font-size: 0.82rem;
+    padding: 0.45rem 0.85rem;
+    cursor: pointer;
+    border-right: 1px solid var(--color-border);
+    white-space: nowrap;
+    transition: background 0.15s ease, color 0.15s ease;
+  }
+  .segmented button:last-child{ border-right: none; }
+  .segmented button:hover{ color: var(--color-text); }
+  .segmented button.active{
+    background: color-mix(in srgb, var(--color-accent) 22%, var(--color-surface));
+    color: var(--color-text);
+  }
+
+  /* ---------- Day tabs ---------- */
+  .day-tabs{
+    display: flex;
+    gap: 0.4rem;
+    margin: 0 0 1.4rem;
+    border-bottom: 1px solid var(--color-border);
+    overflow-x: auto;
+  }
+
+  .day-tab{
+    font-family: var(--font-sans);
+    background: none;
+    border: none;
+    color: var(--color-text-faint);
+    padding: 0.75rem 0.3rem;
+    margin-right: 1.4rem;
+    font-size: 0.98rem;
+    cursor: pointer;
+    position: relative;
+    white-space: nowrap;
+    transition: color 0.15s ease;
+  }
+
+  .day-tab .d-name{ font-weight: 600; color: inherit; }
+  .day-tab .d-date{ font-size: 0.78rem; color: var(--color-text-faint); display:block; margin-top: 0.1rem;}
+  .day-tab:hover{ color: var(--color-text); }
+  .day-tab.active{ color: var(--color-text); }
+  .day-tab.active::after{
+    content:"";
+    position:absolute;
+    left:0; right:1.4rem; bottom:-1px;
+    height: 2px;
+    background: var(--color-accent);
+  }
+  .day-tab.active .d-date{ color: var(--color-accent); }
+
+  /* ---------- Venue filter chips ---------- */
+  .filter-row{
+    display:flex;
+    align-items:center;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-bottom: 1.8rem;
+    font-family: var(--font-sans);
+  }
+
+  .filter-label{
+    font-size: 0.72rem;
+    color: var(--color-text-faint);
+    margin-right: 0.3rem;
+  }
+
+  .chip{
+    display:inline-flex;
+    align-items:center;
+    gap: 0.4rem;
+    border: 1px solid var(--color-border);
+    background: var(--color-surface);
+    color: var(--color-text-secondary);
+    border-radius: 3px;
+    padding: 0.32rem 0.6rem;
+    font-size: 0.76rem;
+    cursor: pointer;
+    transition: border-color 0.15s ease, color 0.15s ease, background 0.15s ease;
+    user-select: none;
+  }
+
+  .chip .dot{
+    width: 8px; height: 8px; border-radius: 50%;
+    background: var(--venue-color, var(--color-text-faint));
+    flex-shrink: 0;
+  }
+
+  .chip.active{
+    color: var(--color-text);
+    border-color: var(--venue-color, var(--color-border));
+    background: color-mix(in srgb, var(--venue-color, var(--color-border)) 16%, var(--color-surface));
+  }
+
+  .chip.reset{ color: var(--color-text-faint); font-style: italic; }
+  .chip.reset:hover{ color: var(--color-text); }
+
+  /* ---------- Performer search ---------- */
+  .performer-search-row{
+    margin-bottom: 1.6rem;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.6rem;
+  }
+
+  .performer-search{
+    flex: 1 1 260px;
+    max-width: 340px;
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: 5px;
+    padding: 0.55rem 0.8rem;
+    color: var(--color-text);
+    font-family: var(--font-sans);
+    font-size: 0.88rem;
+  }
+  .performer-search::placeholder{ color: var(--color-text-faint); }
+  .performer-search:focus{ outline: none; border-color: var(--color-accent); }
+
+  .performer-count{
+    flex-basis: 100%;
+    font-family: var(--font-sans);
+    font-size: 0.74rem;
+    color: var(--color-text-faint);
+    margin: 0.2rem 0 0;
+  }
+
+  /* ---------- Day panels (Time / Venue modes) ---------- */
+  .day-panel{ display:none; }
+  .day-panel.active{ display:block; }
+
+  .empty-note{
+    font-family: var(--font-sans);
+    color: var(--color-text-faint);
+    font-size: 0.88rem;
+    padding: 2rem 0;
+    text-align: center;
+  }
+
+  /* Time-of-day rows */
+  .time-group{
+    display: grid;
+    grid-template-columns: 74px 1fr;
+    gap: 0.9rem;
+    margin-bottom: 0.15rem;
+  }
+
+  .time-col{
+    padding-top: 0.85rem;
+    font-family: var(--font-sans);
+    font-size: 0.78rem;
+    color: var(--color-text-faint);
+    text-align: right;
+  }
+
+  .cards-col{
+    border-left: 1px solid var(--color-border);
+    padding: 0.6rem 0 0.6rem 0.9rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.55rem;
+  }
+
+  /* Venue-grouped sections */
+  .venue-section{
+    margin-bottom: 1.6rem;
+  }
+
+  .venue-section-head{
+    display:flex;
+    align-items:center;
+    gap: 0.5rem;
+    font-family: var(--font-sans);
+    font-size: 0.92rem;
+    font-weight: 600;
+    color: var(--venue-color, var(--color-text));
+    padding-bottom: 0.5rem;
+    margin-bottom: 0.6rem;
+    border-bottom: 1px solid var(--color-border);
+  }
+
+  .venue-section-head .dot{
+    width: 9px; height: 9px; border-radius: 50%;
+    background: var(--venue-color, var(--color-text-faint));
+    flex-shrink: 0;
+  }
+
+  .venue-section .cards-col{
+    border-left: none;
+    padding: 0;
+    gap: 0.5rem;
+  }
+
+  .card .time-inline{
+    font-size: 0.76rem;
+    color: var(--color-text-faint);
+    font-family: var(--font-sans);
+    margin-right: 0.4rem;
+  }
+
+  /* Performer-grouped blocks */
+  .performer-block{
+    margin-bottom: 1.5rem;
+  }
+
+  .performer-head{
+    font-family: var(--font-sans);
+    font-size: 0.98rem;
+    font-weight: 600;
+    color: var(--color-text);
+    margin: 0 0 0.55rem;
+    padding-bottom: 0.4rem;
+    border-bottom: 1px solid var(--color-border);
+  }
+
+  .performer-head .appear-count{
+    font-weight: 400;
+    color: var(--color-text-faint);
+    font-size: 0.76rem;
+    margin-left: 0.4rem;
+  }
+
+  .performer-block .cards-col{
+    border-left: none;
+    padding: 0;
+    gap: 0.5rem;
+  }
+
+  .card .day-tag{
+    font-size: 0.72rem;
+    color: var(--color-text-faint);
+    font-family: var(--font-sans);
+    margin-right: 0.4rem;
+  }
+
+  /* ---------- Cards ---------- */
+  .card{
+    background: var(--color-card);
+    border: 1px solid var(--color-border);
+    border-left: 3px solid var(--venue-color, var(--color-border));
+    border-radius: 4px;
+    padding: 0.65rem 0.85rem;
+    display: none;
+    cursor: pointer;
+    transition: border-color 0.15s ease;
+  }
+
+  .card.show{ display: block; }
+
+  .card:hover{
+    border-color: color-mix(in srgb, var(--venue-color, var(--color-border)) 55%, var(--color-border));
+  }
+
+  .card .row{
+    display:flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 0.6rem;
+  }
+
+  .card .title{
+    flex: 1 1 auto;
+    min-width: 0;
+    font-size: 1rem;
+    line-height: 1.32;
+    margin: 0 0 0.28rem;
+  }
+
+  .row-actions{
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+  }
+
+  .card .meta{
+    font-family: var(--font-sans);
+    font-size: 0.76rem;
+    color: var(--color-text-secondary);
+    display:flex;
+    align-items:center;
+    gap: 0.45rem;
+    flex-wrap: wrap;
+  }
+
+  .card .venue-name{ color: var(--venue-color, var(--color-text-secondary)); font-weight: 600; }
+  .card .sep{ color: var(--color-text-faint); }
+  .card .type{ color: var(--color-text-faint); }
+  .card .luthier-tag{ color: var(--color-accent); font-style: italic; }
+
+  .card.break-card{ opacity: 0.55; font-style: italic; cursor: default; }
+  .card.break-card .title{ font-size: 0.85rem; }
+
+  .chevron{
+    flex-shrink: 0;
+    width: 15px; height: 15px;
+    margin-top: 0.15rem;
+    color: var(--color-text-faint);
+    transition: transform 0.18s ease;
+  }
+  .card.open .chevron{ transform: rotate(180deg); color: var(--venue-color, var(--color-text-faint)); }
+  .card.break-card .chevron{ display: none; }
+
+  .star-btn{
+    flex-shrink: 0;
+    width: 22px; height: 22px;
+    padding: 0;
+    margin: -0.15rem 0 0;
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: var(--color-text-faint);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: color 0.15s ease, transform 0.1s ease;
+  }
+  .star-btn svg{ display: block; }
+  .star-btn:hover{ color: var(--color-accent); }
+  .star-btn.active{ color: var(--color-accent); }
+  .star-btn:active{ transform: scale(0.88); }
+
+  .conflict-warn{
+    color: var(--color-warning);
+    font-weight: 600;
+  }
+
+  .card .details{
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.2s ease;
+  }
+  .card.open .details{ max-height: 260px; }
+
+  .details-inner{
+    font-family: var(--font-sans);
+    padding-top: 0.6rem;
+    margin-top: 0.55rem;
+    border-top: 1px solid var(--color-border);
+  }
+
+  .duration-pill{
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    font-size: 0.78rem;
+    color: var(--venue-color, var(--color-text));
+    background: color-mix(in srgb, var(--venue-color, var(--color-border)) 14%, transparent);
+    border: 1px solid color-mix(in srgb, var(--venue-color, var(--color-border)) 40%, transparent);
+    border-radius: 3px;
+    padding: 0.22rem 0.55rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .details-note{
+    font-size: 0.82rem;
+    line-height: 1.45;
+    color: var(--color-text-secondary);
+    margin: 0 0 0.4rem;
+  }
+
+  .details-price{
+    font-size: 0.76rem;
+    color: var(--color-price);
+    font-weight: 600;
+    margin: 0;
+  }
+
+  .details-performers{
+    font-size: 0.78rem;
+    color: var(--color-text-faint);
+    margin: 0 0 0.4rem;
+  }
+
+  .performer-entry{
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+  }
+
+  .social-icon{
+    display: inline-flex;
+    color: var(--color-text-faint);
+    opacity: 0.75;
+    transition: color 0.15s ease, opacity 0.15s ease;
+  }
+  .social-icon:hover{
+    color: var(--venue-color, var(--color-accent));
+    opacity: 1;
+  }
+  .performer-head .social-icon{ margin-left: 0.15rem; }
+
+  .details-address{
+    font-size: 0.78rem;
+    margin: 0 0 0.4rem;
+  }
+  .details-address a{
+    color: var(--venue-color, var(--color-accent));
+    text-decoration: none;
+    border-bottom: 1px dotted currentColor;
+  }
+  .details-address a:hover{ border-bottom-style: solid; }
+
+  /* ---------- Luthiers ---------- */
+  .luthier-note{
+    font-family: var(--font-sans);
+    font-size: 0.78rem;
+    color: var(--color-text-faint);
+    margin: 0 0 1.2rem;
+    max-width: 60ch;
+  }
+
+  .luthier-grid{
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 0.8rem;
+  }
+
+  .luthier-card{
+    background: var(--color-card);
+    border: 1px solid var(--color-border);
+    border-left: 3px solid var(--color-accent);
+    border-radius: 4px;
+    padding: 0.75rem 0.9rem;
+  }
+
+  .luthier-card .l-name{
+    font-size: 1rem;
+    margin: 0 0 0.2rem;
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    flex-wrap: wrap;
+  }
+
+  .luthier-card .l-location{
+    font-family: var(--font-sans);
+    font-size: 0.74rem;
+    color: var(--color-accent);
+    margin: 0 0 0.5rem;
+  }
+
+  .luthier-card .l-bio{
+    font-family: var(--font-sans);
+    font-size: 0.82rem;
+    line-height: 1.5;
+    color: var(--color-text-secondary);
+    margin: 0;
+  }
+
+  .luthier-card.has-events{
+    border-left-color: var(--color-accent);
+  }
+
+  .l-schedule-toggle{
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    margin-top: 0.6rem;
+    cursor: pointer;
+    user-select: none;
+  }
+
+  .l-chevron{
+    color: var(--color-accent);
+    font-size: 0.75rem;
+    transition: transform 0.18s ease;
+  }
+  .luthier-card.open .l-chevron{ transform: rotate(180deg); }
+
+  .l-schedule{
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.22s ease;
+  }
+  .luthier-card.open .l-schedule{ max-height: 900px; }
+
+  .l-schedule .cards-col{
+    padding-top: 0.7rem;
+    margin-top: 0.5rem;
+    border-top: 1px solid var(--color-border);
+  }
+
+  footer.foot{
+    max-width: 980px;
+    margin: 0 auto;
+    padding: 1.5rem 1.5rem 3rem;
+    font-family: var(--font-sans);
+    font-size: 0.74rem;
+    color: var(--color-text-faint);
+  }
+
+  .legend-title{
+    margin: 0 0 0.6rem;
+    font-size: 0.68rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--color-text-secondary);
+  }
+
+  /* One convention per line at every width: the legend scans as a short
+     vertical reference list, never a flowing row (docs/architecture.md, "Legend"). */
+  .legend-list{
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+  .legend-list li{
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+  }
+  .legend-list li[hidden]{ display: none; }   /* a convention this schedule doesn't use */
+  .legend-icon-slot{
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 22px;
+    height: 22px;
+    flex-shrink: 0;
+  }
+  .legend-swatch{
+    display: inline-block;
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+  .legend-icon{
+    display: inline-block;
+    text-align: center;
+    color: var(--color-accent);
+    flex-shrink: 0;
+  }
+  .legend-chip{
+    display: inline-flex;
+    align-items: center;
+    flex-shrink: 0;
+    width: 20px;
+    height: 11px;
+    border: 1px solid var(--color-border);
+    background: var(--color-surface);
+    border-radius: 3px;
+  }
+  .legend-chip::before{
+    content: '';
+    display: block;
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: var(--venue-1);
+    margin-left: 3px;
+  }
+
+  .credit-line{
+    margin: 0.9rem 0 0;
+    padding-top: 0.9rem;
+    border-top: 1px solid var(--color-border);
+  }
+  .credit-line a{
+    color: var(--color-text-secondary);
+    text-decoration: none;
+    border-bottom: 1px dotted var(--color-text-faint);
+  }
+  .credit-line a:hover{ color: var(--color-text); border-bottom-color: var(--color-accent); }
+
+  .source-line{
+    margin: 0.7rem 0 0;
+  }
+  .source-line a{
+    color: var(--color-text-secondary);
+    text-decoration: none;
+    border-bottom: 1px dotted var(--color-text-faint);
+  }
+  .source-line a:hover{ color: var(--color-text); border-bottom-color: var(--color-accent); }
+
+  @media (max-width: 560px){
+    .time-group{ grid-template-columns: 56px 1fr; }
+    .time-col{ font-size: 0.68rem; }
+
+    /* Five segmented buttons is tight on narrow phones (the star tab was
+       getting clipped on iPhone-width screens) -- reclaim space by shrinking
+       the label and tightening button padding/font-size at this breakpoint. */
+    .sort-label{ display: none; }
+    .segmented button{
+      padding: 0.42rem 0.55rem;
+      font-size: 0.76rem;
+    }
+    .segmented{ -webkit-overflow-scrolling: touch; }
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    *{ transition: none !important; }
+  }
+
+  :focus-visible{
+    outline: 2px solid var(--color-focus);
+    outline-offset: 2px;
+  }
+  /* ---------- Happening Now ---------- */
+  .now-pill{ display: none; }
+  .card.is-live{
+    background: var(--color-card-live-fallback);
+    background: color-mix(in srgb, var(--venue-color, var(--color-border)) 10%, var(--color-card));
+    border-top-color: color-mix(in srgb, var(--venue-color, var(--color-border)) 40%, var(--color-border));
+    border-right-color: color-mix(in srgb, var(--venue-color, var(--color-border)) 40%, var(--color-border));
+    border-bottom-color: color-mix(in srgb, var(--venue-color, var(--color-border)) 40%, var(--color-border));
+  }
+  .card.is-live .now-pill{
+    display: inline-flex;
+    align-items: center;
+    gap: 0.32rem;
+    color: var(--venue-color, var(--color-text));
+    font-weight: 700;
+  }
+  .card.is-live .now-pill::after{
+    content: '·';
+    margin-left: 0.13rem;
+    color: var(--color-text-faint);
+    font-weight: 400;
+  }
+  .card.is-live .now-pill::before{
+    content: '';
+    width: 7px; height: 7px;
+    border-radius: 50%;
+    background: currentColor;
+    animation: now-pulse 2.4s ease-out infinite;
+  }
+  @keyframes now-pulse{
+    0%{ box-shadow: 0 0 0 0 color-mix(in srgb, currentColor 55%, transparent); }
+    70%, 100%{ box-shadow: 0 0 0 6px transparent; }
+  }
+
+  .legend-now{ display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: var(--venue-1); }
+
+  /* ---------- Last updated / offline status ---------- */
+  .updated-line{
+    margin: 0;
+    font-size: 0.72rem;
+    color: var(--color-text-faint);
+  }
+  .updated-line.is-offline{ color: var(--color-warning); }
+  .linklike{
+    background: none;
+    border: none;
+    padding: 0;
+    font: inherit;
+    color: var(--color-accent);
+    text-decoration: underline;
+    text-underline-offset: 2px;
+    cursor: pointer;
+  }
+
+  /* ---------- Update notice ---------- */
+  .toast{
+    position: fixed;
+    left: 50%;
+    bottom: calc(1rem + env(safe-area-inset-bottom, 0px));
+    transform: translate(-50%, 0.8rem);
+    opacity: 0;
+    pointer-events: none;
+    z-index: 50;
+    max-width: calc(100% - 2rem);
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: 6px;
+    box-shadow: 0 6px 24px var(--color-shadow);
+    color: var(--color-text);
+    font-size: 0.82rem;
+    padding: 0.6rem 0.95rem;
+    transition: opacity 0.2s ease, transform 0.2s ease;
+  }
+  .toast.show{ opacity: 1; transform: translate(-50%, 0); pointer-events: auto; }
+
+  /* ---------- Test clock (development/testing only; see ?now=) ---------- */
+  .test-clock{
+    background: var(--color-dev-banner-bg);
+    color: var(--color-dev-banner-text);
+    border-bottom: 1px dashed var(--color-warning);
+    font-size: 0.8rem;
+    padding: 0.55rem 1rem;
+    text-align: center;
+  }
+  .test-clock a{ color: inherit; }
+
+  /* Used while restoring the view after an update, so nothing animates. */
+  .no-anim *, .no-anim *::before{ transition: none !important; }
+
+  @media (prefers-reduced-motion: reduce){
+    .card.is-live .now-pill::before{ animation: none; }
+  }
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="search-anchor"><button type="button" class="search-toggle" id="searchToggle" aria-label="Search" title="Search" aria-expanded="false" aria-controls="sessionSearchRow"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.5 15.5L21 21"/></svg></button></div>
+  <div class="top-brand-row">
+  <h1 class="site-name"><a class="site-name-link" href="https://thejazzloft.org/2026-monteleone-guitar-festival/" target="_blank" rel="noopener noreferrer">Monteleone: Art of the Guitar Festival</a></h1>
+  <p class="eyebrow sans">OCTOBER 15–17, 2026 · STONY BROOK, NEW YORK</p>
+  <p class="updated-line sans" id="updatedLine" hidden></p>
+  </div>
+</header>
+
+<div class="shell">
+
+  <div class="sort-row">
+    <span class="sort-label">SORT BY</span>
+    <div class="segmented" id="sortSeg"></div>
+  </div>
+
+  <div class="day-tabs sans" id="dayTabs"></div>
+
+  <div class="filter-row" id="filterRow"></div>
+
+  <div class="performer-search-row sans" id="sessionSearchRow" style="display:none;">
+    <input type="search" class="performer-search" id="sessionSearch" placeholder="Search the schedule…" aria-label="Search the schedule" autocomplete="off">
+    <p class="performer-count" id="sessionCount" aria-live="polite"></p>
+  </div>
+
+  <div class="performer-search-row sans" id="performerSearchRow" style="display:none;">
+    <input type="text" class="performer-search" id="performerSearch" placeholder="Search by name…">
+    <p class="performer-count" id="performerCount"></p>
+  </div>
+
+  <div class="performer-search-row sans" id="luthierSearchRow" style="display:none;">
+    <input type="text" class="performer-search" id="luthierSearch" placeholder="Search by name…">
+    <p class="performer-count" id="luthierCount"></p>
+  </div>
+
+  <div id="content"></div>
+
+</div>
+
+<footer class="foot">
+  <p class="legend-title">Legend</p>
+  <ul class="legend-list">
+    <li><span class="legend-icon-slot"><span class="legend-swatch" style="background:var(--venue-1)"></span></span>Color indicates venue</li>
+    <li><span class="legend-icon-slot"><span class="legend-chip"></span></span>Tap a venue chip to isolate its sessions — tap again to clear</li>
+    <li><span class="legend-icon-slot"><svg width="13" height="13" viewBox="0 0 16 16" fill="none" style="color:var(--color-accent)"><path d="M4 6L8 10L12 6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></span>Tap any session for its time span, duration, and lineup</li>
+    <li><span class="legend-icon-slot"><span class="legend-icon">★</span></span>Star an event to add it to My Schedule</li>
+    <li data-legend="estimated"><span class="legend-icon-slot"><span class="legend-icon">~</span></span>Marks an estimated duration, where no official end time was listed</li>
+    <li><span class="legend-icon-slot"><span class="legend-now"></span></span>Marks sessions happening now, in event local time</li>
+  </ul>
+  <p class="source-line">Schedule information sourced from <a href="https://thejazzloft.org/2026-monteleone-guitar-festival/" target="_blank" rel="noopener noreferrer">thejazzloft.org</a>.</p>
+  <p class="credit-line">Created with <a href="https://rotapas.com" target="_blank" rel="noopener">Rotapas</a>.</p>
+</footer>
+
+<div class="toast sans" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+// ===========================================================================
+// Schedule data comes from schedule.json, published separately from this page
+// (see tools/publish.mjs). applyData() fills the globals below on first load
+// and again whenever a newer published schedule arrives.
+// ===========================================================================
+const SUPPORTED_SCHEMA = 3;
+let SCHEDULE = null;        // the whole published document
+let DATA = [];              // occurrences, each with its program item's title and types
+let PEOPLE = {};            // key -> { name, links, home, bio }
+let VIEWS = [];             // the event's browse views (at most two), in tab order
+let RETIRED = {};           // retired occurrence id -> surviving id (favorites move)
+let DAYS = [];              // festival day keys, in order
+let DAY_LABEL = {};         // day key -> {name, date}
+let DAY_SHORT = {};         // day key -> "Fri"
+let DAY_ISO = {};           // day key -> "2026-09-18"
+let EVENT_TZ = 'UTC';       // IANA timezone of the event location
+
+function isUsableSchedule(doc){
+  return !!(doc && doc.schema === SUPPORTED_SCHEMA && doc.event && doc.event.timezone &&
+            Array.isArray(doc.days) && doc.days.length && Array.isArray(doc.events) && doc.items && doc.people);
+}
+
+function applyData(doc){
+  SCHEDULE = doc;
+  PEOPLE = doc.people;
+  VIEWS = doc.views || [];
+  RETIRED = doc.retired || {};
+  // Repeated occurrences of one program item share its title and types.
+  DATA = doc.events.map(e => {
+    const item = doc.items[e.item] || {};
+    return Object.assign({}, e, { title: item.title || '', types: item.types || [], roles: e.roles || [] });
+  });
+  EVENT_TZ = doc.event.timezone;
+  DAYS = doc.days.map(d => d.key);
+  DAY_LABEL = {}; DAY_SHORT = {}; DAY_ISO = {};
+  doc.days.forEach(d => {
+    DAY_LABEL[d.key] = {name: d.name, date: d.label};
+    DAY_SHORT[d.key] = d.short;
+    DAY_ISO[d.key] = d.date;
+  });
+  applyViewText();
+  applyVenues(doc.venues);
+  applyEventShell(doc.event);
+  applyLegend();
+  computeEventTimes();
+}
+
+// The legend explains only the conventions this schedule actually uses: no
+// "~" line when no session has an estimated duration (docs/architecture.md,
+// "Legend").
+function applyLegend(){
+  const est = document.querySelector('[data-legend="estimated"]');
+  if (est) est.hidden = !DATA.some(e => e.end_kind === 'estimated');
+}
+
+// Venues come from the data (schedule.json → venues), in chip order, and
+// sessions refer to them by id. The first nine get the venue color tokens. A
+// venue's parent is named only where two venues would read the same
+// ("Lobby · Main Building").
+let VENUE_COLOR = {};   // venue id -> CSS color
+let VENUE_SHORT = {};   // venue id -> short label
+let VENUE_DEST = {};    // venue id -> directions destination { address, pin?, label }
+function applyVenues(venues){
+  VENUE_COLOR = {}; VENUE_SHORT = {}; VENUE_DEST = {};
+  (venues || []).forEach((v, i) => {
+    VENUE_COLOR[v.id] = i < 9 ? 'var(--venue-' + (i + 1) + ')' : 'var(--color-text-faint)';
+    VENUE_SHORT[v.id] = (v.short || v.name) + (v.context ? ' \u00b7 ' + v.context : '');
+    if (v.address || v.pin) VENUE_DEST[v.id] = { address: v.address || '', pin: v.pin || null, label: v.name };
+  });
+}
+
+// ---- Directions (N17) -------------------------------------------------------
+// The expanded card's address is the way to directions, as the schedule always had it.
+// Rotapas supplies the destination (the venue's own or inherited address, or
+// its precise pin) and hands it to what the device provides, never choosing a
+// maps provider where the platform can choose:
+// - Android: a geo: link (RFC 5870, with Android's q= search). The system opens
+//   the user's default maps app, or asks which one to use.
+// - Apple devices: Safari doesn't open geo: links, and iOS offers web pages no
+//   provider-neutral handoff, so the link is Apple's own maps link, which the
+//   system opens in its Maps app (in a browser where there is no app).
+// - Anything else (Windows, Linux, ChromeOS): browsers don't hand maps links to
+//   an app there, so the destination opens on OpenStreetMap, an open-data web
+//   map. Device behavior is documented in apps/renderer/README.md.
+function platformOf(ua, touchPoints){
+  if (/Android/i.test(ua)) return 'android';
+  if (/iPhone|iPad|iPod/i.test(ua) || (/Macintosh/i.test(ua) && touchPoints > 1)) return 'apple';   // iPadOS reports a Mac
+  if (/Macintosh|Mac OS X/i.test(ua)) return 'apple';
+  return 'other';
+}
+const PLATFORM = platformOf(navigator.userAgent || '', navigator.maxTouchPoints || 0);
+function directionsHref(dest, platform){
+  const pin = dest.pin, q = encodeURIComponent(dest.address || '');
+  const at = pin ? pin.lat + ',' + pin.lon : '';
+  if (platform === 'android') return pin ? 'geo:' + at + '?q=' + at + '(' + encodeURIComponent(dest.label || dest.address || '') + ')' : 'geo:0,0?q=' + q;
+  if (platform === 'apple') return pin ? 'https://maps.apple.com/?ll=' + at + '&q=' + encodeURIComponent(dest.label || dest.address || '') : 'https://maps.apple.com/?q=' + q;
+  return pin ? 'https://www.openstreetmap.org/?mlat=' + pin.lat + '&mlon=' + pin.lon + '#map=18/' + pin.lat + '/' + pin.lon : 'https://www.openstreetmap.org/search?query=' + q;
+}
+
+// The header is compiled into the page, but a published update can change the
+// event's name, dates or website. Keep it in step with the data being shown.
+// (Colors and the footer text change with the page itself, on the next visit.)
+function applyEventShell(ev){
+  document.title = ev.name + ' \u2014 Schedule';
+  const eyebrow = document.querySelector('.top-brand-row .eyebrow');
+  if (eyebrow && ev.dates_line && eyebrow.textContent !== ev.dates_line) eyebrow.textContent = ev.dates_line;
+  const name = document.querySelector('.top-brand-row .site-name');
+  if (name){
+    // Without a logo the name is the way to the website: add, update or remove the link as the website does.
+    let link = name.querySelector('.site-name-link');
+    if (ev.website && !link){
+      link = document.createElement('a');
+      link.className = 'site-name-link'; link.target = '_blank'; link.rel = 'noopener noreferrer';
+      name.textContent = ''; name.appendChild(link);
+    } else if (!ev.website && link){ link.remove(); link = null; }
+    if (link && link.getAttribute('href') !== ev.website) link.setAttribute('href', ev.website);
+    const nameText = link || name;
+    if (nameText.textContent !== ev.name) nameText.textContent = ev.name;
+  }
+  const logo = document.querySelector('.site-logo'), img = logo && logo.querySelector('img');
+  if (img && img.alt !== ev.name + ' logo') img.alt = ev.name + ' logo';
+  if (logo && ev.website && logo.getAttribute('href') !== ev.website){
+    logo.setAttribute('href', ev.website); logo.target = '_blank'; logo.rel = 'noopener noreferrer';
+    logo.title = 'Visit ' + ev.website_host;
+  }
+  const source = document.querySelector('.source-line a');
+  if (source && ev.website && source.getAttribute('href') !== ev.website){ source.setAttribute('href', ev.website); source.textContent = ev.website_host; }
+}
+// A venue missing from the list still gets a readable label.
+function venueShort(key){ return escapeHtml(VENUE_SHORT[key] || key); }
+
+// ---- Event-local time -----------------------------------------------------
+// "Today", "now", Happening Now and displayed timestamps all use the event's
+// IANA timezone (schedule.json → event.timezone), never the visitor's device
+// timezone. Works for any IANA zone, DST included.
+const _tzFormatters = {};
+function tzParts(ms, tz){
+  let f = _tzFormatters[tz];
+  if (!f) f = _tzFormatters[tz] = new Intl.DateTimeFormat('en-US', {
+    timeZone: tz, hourCycle: 'h23', year: 'numeric', month: '2-digit', day: '2-digit',
+    hour: '2-digit', minute: '2-digit', second: '2-digit'
+  });
+  const p = {};
+  f.formatToParts(new Date(ms)).forEach(x => { if (x.type !== 'literal') p[x.type] = parseInt(x.value, 10); });
+  if (p.hour === 24) p.hour = 0;
+  return p;
+}
+function tzOffsetMs(ms, tz){
+  const p = tzParts(ms, tz);
+  return Date.UTC(p.year, p.month - 1, p.day, p.hour, p.minute, p.second) - Math.floor(ms / 1000) * 1000;
+}
+// Absolute instant of a wall-clock time (minutes after local midnight; may
+// exceed 1440 to mean "the next day") on isoDate, in timezone tz.
+function wallToInstant(isoDate, minutes, tz){
+  const [y, m, d] = isoDate.split('-').map(Number);
+  const asUTC = Date.UTC(y, m - 1, d, 0, minutes);
+  const firstGuess = asUTC - tzOffsetMs(asUTC, tz);
+  return asUTC - tzOffsetMs(firstGuess, tz);
+}
+function localDateISO(ms, tz){
+  const p = tzParts(ms, tz);
+  return p.year + '-' + String(p.month).padStart(2, '0') + '-' + String(p.day).padStart(2, '0');
+}
+function formatEventTime(ms, withDate){
+  const opts = { timeZone: EVENT_TZ, hour: 'numeric', minute: '2-digit', timeZoneName: 'short' };
+  if (withDate){ opts.month = 'short'; opts.day = 'numeric'; }
+  return new Intl.DateTimeFormat('en-US', opts).format(new Date(ms));
+}
+
+/* ===== DEV / TEST ONLY — festival clock override =====================================
+   ?now=YYYY-MM-DDTHH:MM (in the EVENT's local time) makes this tab behave as if
+   it were that moment; the clock then keeps running in real time from there.
+   It only changes what this tab shows ("today", Happening Now). It is never
+   stored, never cached, never sent to the service worker, does not affect
+   update checks or the "last updated" line, and a banner is shown the whole
+   time it is active. Without ?now, getNow() is exactly Date.now().
+   ===================================================================================== */
+let testClockOffset = null;
+function initTestClock(){
+  let raw = null;
+  try { raw = new URLSearchParams(location.search).get('now'); } catch(e){}
+  if (!raw) return;
+  const m = raw.match(/^(\d{4}-\d{2}-\d{2})T([01]\d|2[0-3]):([0-5]\d)$/);
+  if (!m){ console.warn('Ignoring ?now=' + raw + ' (expected YYYY-MM-DDTHH:MM in event-local time)'); return; }
+  testClockOffset = wallToInstant(m[1], +m[2] * 60 + +m[3], EVENT_TZ) - Date.now();
+  const banner = document.createElement('div');
+  banner.id = 'testClockBanner';
+  banner.className = 'test-clock sans';
+  banner.setAttribute('role', 'note');
+  document.body.insertBefore(banner, document.body.firstChild);
+  updateTestClockBanner();
+}
+function updateTestClockBanner(){
+  const el = document.getElementById('testClockBanner');
+  if (!el || testClockOffset === null) return;
+  const exitUrl = location.pathname + location.search.replace(/([?&])now=[^&]*&?/, '$1').replace(/[?&]$/, '') + location.hash;
+  el.innerHTML = '<strong>Test clock</strong> ' + escapeHtml(formatEventTime(getNow(), true)) +
+    '. This is not the real time. <a href="' + escapeHtml(exitUrl) + '">Use real time</a>';
+}
+function getNow(){ return testClockOffset === null ? Date.now() : Date.now() + testClockOffset; }
+/* ===== end DEV / TEST ONLY ========================================================== */
+
+// If opened during the festival, start on today's tab — "today" as it is at
+// the event location. Outside the festival dates, fall back to the first day.
+function todaysFestivalDay(){
+  const today = localDateISO(getNow(), EVENT_TZ);
+  const match = SCHEDULE.days.find(d => d.date === today);
+  return match ? match.key : DAYS[0];
+}
+
+function timeToMinutes(t){
+  const m = t.match(/(\d+):(\d+)\s*(AM|PM)/i);
+  let h = parseInt(m[1],10) % 12;
+  if (/pm/i.test(m[3])) h += 12;
+  return h*60 + parseInt(m[2],10);
+}
+
+// Chronological sort (festival day, then time-of-day) used anywhere a set of
+// appearances is listed — the Performer and Luthier views both need this.
+function sortByDayThenTime(items){
+  return items.slice().sort((a,b) => {
+    const da = DAYS.indexOf(a.date), db = DAYS.indexOf(b.date);
+    if (da !== db) return da - db;
+    return timeToMinutes(a.time) - timeToMinutes(b.time);
+  });
+}
+
+// ---- Event time spans -----------------------------------------------------
+// Each event's [start, end) as absolute instants. `end_kind` in the data:
+//   scheduled — an official end time;
+//   estimated — an inferred end time (shown with "~");
+//   open      — no end time at all (e.g. "Until close"). The source wording is
+//               kept for display; for Happening Now and conflict checks an
+//               open event counts as running until the end of its festival
+//               day (local midnight), since nothing later is known.
+//   unknown   — no reliable end time. Only the start is shown; the event is
+//               never marked "Now", and conflicts are checked at its start.
+const EVENT_TIMES = new Map();
+function computeEventTimes(){
+  EVENT_TIMES.clear();
+  DATA.forEach(ev => {
+    const iso = DAY_ISO[ev.date];
+    if (!iso) return;
+    const s = timeToMinutes(ev.time);
+    let e;
+    if (ev.end_kind === 'unknown') e = s;
+    else if (ev.end_kind === 'open' || !ev.end_time) e = 24 * 60;
+    else { e = timeToMinutes(ev.end_time); if (e <= s) e += 24 * 60; } // runs past midnight
+    EVENT_TIMES.set(ev.id, { start: wallToInstant(iso, s, EVENT_TZ), end: wallToInstant(iso, e, EVENT_TZ) });
+  });
+}
+function eventTimeRange(item){
+  const t = EVENT_TIMES.get(item.id);
+  return t ? [t.start, t.end] : [0, 0];
+}
+function isLive(item, now){
+  const t = EVENT_TIMES.get(item.id);
+  return !!t && t.start <= now && now < t.end;
+}
+
+// ---- "My Schedule" (personal starring) ------------------------------------
+// Starred events are saved to this browser's localStorage only — there's no
+// server, so picks are private and per-device, not shared or synced.
+// Stars are keyed by each event's permanent `id`. The previous version keyed
+// them "date|time|title"; legacyStarId() converts those — it is the same
+// function that assigned the ids during migration, so an old star still finds
+// its event even if that event's title or time has been edited since.
+let STAR_STORAGE_KEY = null;
+let starredIds = new Set();
+
+function legacyStarId(key){
+  let h1 = 0xdeadbeef, h2 = 0x41c6ce57;
+  for (let i = 0; i < key.length; i++){
+    const ch = key.charCodeAt(i);
+    h1 = Math.imul(h1 ^ ch, 2654435761);
+    h2 = Math.imul(h2 ^ ch, 1597334677);
+  }
+  h1 = Math.imul(h1 ^ (h1 >>> 16), 2246822507) ^ Math.imul(h2 ^ (h2 >>> 13), 3266489909);
+  h2 = Math.imul(h2 ^ (h2 >>> 16), 2246822507) ^ Math.imul(h1 ^ (h1 >>> 13), 3266489909);
+  const n = 4294967296 * (2097151 & h2) + (h1 >>> 0);
+  return 'e_' + n.toString(16).padStart(14, '0');
+}
+
+function loadStarred(){
+  STAR_STORAGE_KEY = SCHEDULE.event.storage_namespace + '-starred-events';
+  let raw = [];
+  try { raw = JSON.parse(localStorage.getItem(STAR_STORAGE_KEY) || '[]'); } catch(e){}
+  starredIds = new Set(Array.isArray(raw) ? raw.filter(v => typeof v === 'string') : []);
+  normalizeStars();
+}
+// Convert any legacy "date|time|title" entries to ids, and move a star on a
+// merged duplicate to the session that survived it (schedule.json → retired).
+// Entries that match no current event are kept (the event may return in a
+// later update).
+function normalizeStars(){
+  const known = new Set(DATA.map(e => e.id));
+  let changed = false;
+  Array.from(starredIds).forEach(v => {
+    if (RETIRED[v] && known.has(RETIRED[v])){ starredIds.delete(v); starredIds.add(RETIRED[v]); changed = true; return; }
+    if (v.indexOf('|') === -1) return;
+    const id = legacyStarId(v);
+    if (known.has(id)){ starredIds.delete(v); starredIds.add(id); changed = true; }
+  });
+  if (changed) saveStarred();
+}
+
+function saveStarred(){
+  try { localStorage.setItem(STAR_STORAGE_KEY, JSON.stringify(Array.from(starredIds))); }
+  catch(e){ /* localStorage unavailable — starring just won't persist */ }
+}
+
+function isStarred(item){ return starredIds.has(item.id); }
+function toggleStar(item){
+  if (starredIds.has(item.id)) starredIds.delete(item.id); else starredIds.add(item.id);
+  saveStarred();
+  const state = captureViewState();
+  render();
+  restoreViewState(state);
+}
+
+// Whether two [start, end) spans overlap. A session with an unknown end is a
+// point at its start: it conflicts with anything running at that moment.
+function spansOverlap(s1, e1, s2, e2){
+  if (s1 === e1 && s2 === e2) return s1 === s2;
+  if (s1 === e1) return s2 <= s1 && s1 < e2;
+  if (s2 === e2) return s1 <= s2 && s2 < e1;
+  return s1 < e2 && s2 < e1;
+}
+
+// Other *starred* events whose time span overlaps this one.
+function getConflicts(item){
+  if (!isStarred(item)) return [];
+  const [s1, e1] = eventTimeRange(item);
+  return DATA.filter(other => {
+    if (other === item || !isStarred(other)) return false;
+    const [s2, e2] = eventTimeRange(other);
+    return spansOverlap(s1, e1, s2, e2);
+  });
+}
+
+const STAR_ICON_PATH = 'M12 2.7l2.9 6.5 6.9.7-5.2 4.8 1.5 6.9L12 18.1l-6.1 3.5 1.5-6.9-5.2-4.8 6.9-.7z';
+
+let sortMode = 'time';        // 'time' | 'venue' | 'view0' | 'view1' | 'mine'
+let activeDay = null;         // set once data has loaded
+let activeVenues = new Set(); // empty = show all (Time/Venue modes)
+let viewQuery = ['', ''];     // each browse view's search
+let sessionSearchOpen = false; // the on-demand schedule search (Time, Venue, My Schedule)
+let sessionQuery = '';
+
+// Search ignores case and accents: "lucia" finds "Lucía".
+function fold(s){ return String(s || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase(); }
+function matchesAll(text, query){
+  const words = fold(query).split(/\s+/).filter(Boolean);
+  const hay = fold(text);
+  return words.every(w => hay.indexOf(w) !== -1);
+}
+
+function chevronSVG(){
+  const wrapper = document.createElement('div');
+  wrapper.innerHTML = '<svg class="chevron" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M4 6L8 10L12 6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+  return wrapper.firstChild;
+}
+
+const IG_ICON = '<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.2" cy="6.8" r="1" fill="currentColor" stroke="none"/></svg>';
+const SPOTIFY_ICON = '<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9.5"/><path d="M6.8 9.8c3.2-.9 7.3-.6 9.9 1" stroke-linecap="round"/><path d="M7.3 12.7c2.7-.7 5.9-.5 8.1.9" stroke-linecap="round"/><path d="M7.8 15.4c2.2-.5 4.6-.4 6.4.7" stroke-linecap="round"/></svg>';
+const WEB_ICON = '<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9.5"/><path d="M2.5 12h19"/><path d="M12 2.5c2.6 2.6 4 6 4 9.5s-1.4 6.9-4 9.5c-2.6-2.6-4-6-4-9.5s1.4-6.9 4-9.5z"/></svg>';
+const YOUTUBE_ICON = '<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="2.5" y="5.5" width="19" height="13" rx="4"/><path d="M10 9.3v5.4l4.8-2.7z" fill="currentColor" stroke="none"/></svg>';
+const FACEBOOK_ICON = '<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9.5"/><path d="M13.8 21.5v-7.4h2.5l.4-2.9h-2.9v-1.85c0-.84.23-1.42 1.44-1.42h1.55V5.28c-.27-.036-1.18-.116-2.24-.116-2.22 0-3.73 1.355-3.73 3.845v2.145H8.3v2.9h2.55v7.4" stroke-linejoin="round"/></svg>';
+const TIKTOK_ICON = '<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M14 3v10.8a3.3 3.3 0 1 1-2.6-3.23" stroke-linecap="round" stroke-linejoin="round"/><path d="M14 3c.4 2.5 2.1 4.2 4.6 4.4" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+const BANDCAMP_ICON = '<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9.5"/><path d="M8.7 8h4.6l2.0 8H10.7z" fill="currentColor" stroke="none"/></svg>';
+const TIDAL_ICON = '<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M3 9l3-3 3 3-3 3z"/><path d="M9 9l3-3 3 3-3 3z"/><path d="M15 9l3-3 3 3-3 3z"/><path d="M9 15l3-3 3 3-3 3z"/></svg>';
+const LINK_ICON = '<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M10 14a4.2 4.2 0 0 0 6 0l3-3a4.2 4.2 0 0 0-6-6l-1.2 1.2"/><path d="M14 10a4.2 4.2 0 0 0-6 0l-3 3a4.2 4.2 0 0 0 6 6l1.2-1.2"/></svg>';
+const APPLEMUSIC_ICON = '<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9.5"/><circle cx="9.3" cy="15" r="1.6" fill="currentColor" stroke="none"/><path d="M10.9 15V8l4.3-1v6.3" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+
+// Shared icon-link builder used by both browse-view headings and directory cards.
+function socialIconLink(url, icon, name, platform){
+  // Only web links: a URL with any other scheme (javascript:, data:, …) is
+  // dropped. Browsers ignore whitespace and control characters in a scheme, so
+  // those are removed before checking.
+  const scheme = String(url).replace(/[\u0000-\u0020\u007f]/g, '').match(/^([a-z][a-z0-9+.-]*):/i);
+  if (scheme && !/^https?$/i.test(scheme[1])) return '';
+  return '<a class="social-icon" href="' + escapeHtml(url) + '" target="_blank" rel="noopener noreferrer" title="' +
+    escapeHtml(name) + (platform === 'Website' ? '\u2019s website' : ' on ' + escapeHtml(platform)) +
+    '" aria-label="' + escapeHtml(platform) + '">' + icon + '</a>';
+}
+
+// Known services, in the order their icons appear; anything else gets the
+// generic link icon, labeled with its domain (schedule.json → people[].links).
+const LINK_SERVICES = [
+  ['website', WEB_ICON, 'Website'], ['instagram', IG_ICON, 'Instagram'], ['spotify', SPOTIFY_ICON, 'Spotify'],
+  ['applemusic', APPLEMUSIC_ICON, 'Apple Music'], ['bandcamp', BANDCAMP_ICON, 'Bandcamp'], ['youtube', YOUTUBE_ICON, 'YouTube'],
+  ['facebook', FACEBOOK_ICON, 'Facebook'], ['tiktok', TIKTOK_ICON, 'TikTok'], ['tidal', TIDAL_ICON, 'Tidal'],
+];
+function socialIconsHtml(name, links){
+  if (!links || !links.length) return '';
+  let out = '';
+  LINK_SERVICES.forEach(([service, icon, platform]) => {
+    const link = links.find(l => l.service === service);
+    if (link) out += socialIconLink(link.url, icon, name, platform);
+  });
+  links.forEach(l => {
+    if (!LINK_SERVICES.some(([service]) => service === l.service)) out += socialIconLink(l.url, LINK_ICON, name, l.label || 'Link');
+  });
+  // Note: email is intentionally never rendered here, even if present in the
+  // underlying data -- this app never displays personal email addresses.
+  return out;
+}
+
+function personName(key){ return PEOPLE[key] ? PEOPLE[key].name : ''; }
+function personNameHtml(key){
+  const p = PEOPLE[key] || {};
+  return '<span class="performer-entry">' + escapeHtml(p.name || '') + socialIconsHtml(p.name || '', p.links) + '</span>';
+}
+
+// ---- Browse views and roles -------------------------------------------------
+// Everything a view says comes from the data, in the event's own words
+// (schedule.json → views[].text): "{n}" is a count, "{q}" the search.
+function fillText(template, n, q){ return String(template).split('{n}').join(String(n)).split('{q}').join(q || ''); }
+function countText(forms, n){ return fillText(n === 1 ? forms.one : forms.other, n); }
+
+// The two search rows, used by the first and second browse view.
+const VIEW_ROWS = [['performerSearchRow', 'performerSearch', 'performerCount'], ['luthierSearchRow', 'luthierSearch', 'luthierCount']];
+function applyViewText(){
+  VIEW_ROWS.forEach(([, input], i) => {
+    const el = document.getElementById(input);
+    if (el && VIEWS[i]) el.placeholder = VIEWS[i].text.search;
+  });
+}
+function viewSlot(mode){ return /^view[01]$/.test(mode) ? +mode.slice(4) : -1; }
+
+// Who takes part in a session, by role, each with the caption cards use
+// ("Featuring", or the role's own word) and whether it shows on the card face.
+function roleLines(item){
+  return item.roles.map(g => {
+    const view = VIEWS.find(v => v.role === g.label);
+    return { caption: view ? view.caption : g.label, onCard: !!(view && view.on_card), names: g.people.map(personName).filter(Boolean) };
+  }).filter(r => r.names.length);
+}
+
+function buildCard(item, opts){
+  opts = opts || {};
+  const key = item.venue;
+  const color = VENUE_COLOR[key] || 'var(--color-text-faint)';
+  const isBreak = item.types.indexOf('Break') !== -1 || item.types.indexOf('Setup') !== -1;
+  const roles = roleLines(item);
+
+  const card = document.createElement('div');
+  card.className = 'card show' + (isBreak ? ' break-card' : '');
+  card.style.setProperty('--venue-color', color);
+  card.dataset.id = item.id;
+  if (isLive(item, getNow())) card.classList.add('is-live');
+
+  const row = document.createElement('div');
+  row.className = 'row';
+
+  const title = document.createElement('p');
+  title.className = 'title';
+  let prefix = '';
+  if (opts.showDayTag) prefix += '<span class="day-tag">' + DAY_SHORT[item.date] + '</span> ';
+  if (opts.showTimeInline) prefix += '<span class="time-inline">' + item.time + '</span> ';
+  title.innerHTML = prefix + escapeHtml(item.title);
+  row.appendChild(title);
+
+  // Star + chevron are grouped together so they sit as one fixed-spacing
+  // unit at the row's right edge, regardless of the title's length.
+  const actions = document.createElement('div');
+  actions.className = 'row-actions';
+
+  const starBtn = document.createElement('button');
+  const starred = isStarred(item);
+  starBtn.className = 'star-btn' + (starred ? ' active' : '');
+  starBtn.setAttribute('aria-label', starred ? 'Remove from my schedule' : 'Add to my schedule');
+  starBtn.title = starBtn.getAttribute('aria-label');
+  starBtn.innerHTML = '<svg viewBox="0 0 24 24" width="18" height="18"><path d="' + STAR_ICON_PATH +
+    '" fill="' + (starred ? 'currentColor' : 'none') + '" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg>';
+  starBtn.addEventListener('click', (e) => { e.stopPropagation(); toggleStar(item); });
+  actions.appendChild(starBtn);
+
+  if (!isBreak) actions.appendChild(chevronSVG());
+  row.appendChild(actions);
+
+  const meta = document.createElement('div');
+  meta.className = 'meta sans';
+  let metaHtml = '<span class="now-pill">Now</span>';
+  if (opts.showVenueInMeta !== false && key){
+    metaHtml += '<span class="venue-name">' + venueShort(key) + '</span>' + (item.types.length ? '<span class="sep">·</span>' : '');
+  }
+  if (item.types.length) metaHtml += '<span class="type">' + escapeHtml(item.types.join(' \u00b7 ')) + '</span>';
+  meta.innerHTML = metaHtml;
+
+  card.appendChild(row);
+  card.appendChild(meta);
+
+  roles.filter(r => r.onCard).forEach(r => {
+    const lline = document.createElement('div');
+    lline.className = 'meta sans';
+    lline.innerHTML = '<span class="luthier-tag">' + escapeHtml(r.caption) + ': ' + r.names.map(escapeHtml).join(', ') + '</span>';
+    card.appendChild(lline);
+  });
+
+  const conflicts = getConflicts(item);
+  if (conflicts.length){
+    const warn = document.createElement('div');
+    warn.className = 'meta sans conflict-warn';
+    warn.textContent = '\u26A0 Conflicts with: ' + conflicts.map(c => c.title).join(', ');
+    card.appendChild(warn);
+  }
+
+  if (!isBreak){
+    const details = document.createElement('div');
+    details.className = 'details';
+    const inner = document.createElement('div');
+    inner.className = 'details-inner';
+
+    let html = '';
+    if (item.duration_label){
+      const rangeText = item.end_time ? (item.time + ' – ' + item.end_time) : (item.time + ' onward');
+      html += '<span class="duration-pill">' + rangeText + ' &nbsp;·&nbsp; ' + item.duration_label + '</span><br>';
+    }
+    roles.forEach(r => {
+      html += '<p class="details-performers">' + escapeHtml(r.caption) + ': ' + r.names.map(escapeHtml).join(', ') + '</p>';
+    });
+    if (item.address){
+      const href = directionsHref(VENUE_DEST[item.venue] || { address: item.address }, PLATFORM);
+      const web = /^https:/.test(href) ? ' target="_blank" rel="noopener noreferrer"' : '';
+      html += '<p class="details-address"><a href="' + escapeHtml(href) + '"' + web + '>' + escapeHtml(item.address) + '</a></p>';
+    }
+    if (item.note){
+      html += '<p class="details-note">' + escapeHtml(item.note) + '</p>';
+    }
+    if (item.price){
+      html += '<p class="details-price">' + escapeHtml(item.price) + '</p>';
+    }
+    if (!item.duration_label && !item.note && !item.price && !item.address && !roles.length){
+      html += '<p class="details-note">No further details listed.</p>';
+    }
+    inner.innerHTML = html;
+    details.appendChild(inner);
+    card.appendChild(details);
+
+    card.addEventListener('click', () => card.classList.toggle('open'));
+  }
+
+  return card;
+}
+
+function escapeHtml(s){
+  const d = document.createElement('div');
+  d.textContent = s;
+  return d.innerHTML;
+}
+
+function render(){
+  let slot = viewSlot(sortMode);
+  if (slot >= VIEWS.length){ sortMode = 'time'; slot = -1; }   // an update removed the view
+  renderSortSeg();
+  const searching = sessionSearchOpen && slot < 0;
+  document.getElementById('dayTabs').style.display = (slot >= 0 || searching) ? 'none' : 'flex';
+  document.getElementById('filterRow').style.display = (!searching && (sortMode === 'time' || sortMode === 'venue')) ? 'flex' : 'none';
+  VIEW_ROWS.forEach(([row], i) => { document.getElementById(row).style.display = slot === i ? 'flex' : 'none'; });
+  document.getElementById('sessionSearchRow').style.display = searching ? 'flex' : 'none';
+  document.getElementById('searchToggle').setAttribute('aria-expanded', searching ? 'true' : 'false');
+
+  if (searching){
+    renderSessionSearch();
+  } else if (slot >= 0){
+    renderBrowseView(slot);
+  } else if (sortMode === 'mine'){
+    renderTabs();
+    renderMyScheduleView();
+  } else {
+    renderTabs();
+    renderFilters();
+    if (sortMode === 'time') renderTimePanels();
+    else renderVenuePanels();
+  }
+}
+
+function renderSortSeg(){
+  const el = document.getElementById('sortSeg');
+  el.innerHTML = '';
+  const starIcon = '<svg viewBox="0 0 24 24" width="14" height="14" style="vertical-align:-2px;"><path d="' + STAR_ICON_PATH + '" fill="currentColor"/></svg>';
+  // Time · Venue · the event's browse views (at most two) · My Schedule.
+  [['time','Time'],['venue','Venue']].concat(VIEWS.map((v, i) => ['view' + i, v.label])).concat([['mine','My Schedule']])
+    .forEach(([mode,label]) => {
+      const btn = document.createElement('button');
+      if (mode === 'mine'){
+        btn.innerHTML = starIcon + (starredIds.size ? ' ' + starredIds.size : '');
+        btn.setAttribute('aria-label', label + (starredIds.size ? ' (' + starredIds.size + ' starred)' : ''));
+        btn.title = 'My Schedule';
+      } else {
+        btn.textContent = label;
+      }
+      btn.className = mode === sortMode ? 'active' : '';
+      btn.addEventListener('click', () => { sortMode = mode; sessionSearchOpen = false; render(); });
+      el.appendChild(btn);
+    });
+}
+
+function renderTabs(){
+  const el = document.getElementById('dayTabs');
+  el.innerHTML = '';
+  DAYS.forEach(day => {
+    const btn = document.createElement('button');
+    btn.className = 'day-tab' + (day === activeDay ? ' active' : '');
+    const lbl = DAY_LABEL[day];
+    btn.innerHTML = '<span class="d-name">' + escapeHtml(lbl.name) + '</span><span class="d-date">' + escapeHtml(lbl.date) + '</span>';
+    btn.addEventListener('click', () => { activeDay = day; render(); });
+    el.appendChild(btn);
+  });
+}
+
+function renderFilters(){
+  const el = document.getElementById('filterRow');
+  el.innerHTML = '<span class="filter-label">VENUE</span>';
+  Object.keys(VENUE_COLOR).forEach(v => {
+    const chip = document.createElement('button');
+    const isActive = activeVenues.has(v);
+    chip.className = 'chip' + (isActive ? ' active' : '');
+    chip.style.setProperty('--venue-color', VENUE_COLOR[v]);
+    chip.innerHTML = '<span class="dot"></span>' + venueShort(v);
+    chip.addEventListener('click', () => {
+      if (activeVenues.has(v)) activeVenues.delete(v);
+      else activeVenues.add(v);
+      render();
+    });
+    el.appendChild(chip);
+  });
+  if (activeVenues.size > 0){
+    const reset = document.createElement('button');
+    reset.className = 'chip reset';
+    reset.textContent = 'Clear filters';
+    reset.addEventListener('click', () => { activeVenues.clear(); render(); });
+    el.appendChild(reset);
+  }
+}
+
+function buildDayGroups(day){
+  const rows = DATA.filter(d => d.date === day);
+  const order = [];
+  const byTime = {};
+  rows.forEach(r => {
+    if(!byTime[r.time]){ byTime[r.time] = []; order.push(r.time); }
+    byTime[r.time].push(r);
+  });
+  return order.map(t => ({ time: t, items: byTime[t] }));
+}
+
+// Shared scaffolding for the Time and Venue views: one panel per festival day,
+// each built by `buildSections(day)` (which returns the DOM sections for that
+// day), falling back to an empty-state note when nothing matches the filter.
+function renderDayPanels(buildSections, emptyText){
+  const el = document.getElementById('content');
+  el.innerHTML = '';
+  DAYS.forEach(day => {
+    const panel = document.createElement('div');
+    panel.className = 'day-panel' + (day === activeDay ? ' active' : '');
+
+    const sections = buildSections(day);
+    sections.forEach(section => panel.appendChild(section));
+
+    if (sections.length === 0){
+      const note = document.createElement('p');
+      note.className = 'empty-note';
+      note.textContent = emptyText ? emptyText(day) : ('Nothing matches this filter on ' + DAY_LABEL[day].name + '.');
+      panel.appendChild(note);
+    }
+    el.appendChild(panel);
+  });
+}
+
+function renderTimePanels(){
+  renderDayPanels(day => buildDayGroups(day)
+    .map(g => {
+      const visibleItems = g.items.filter(item => {
+        return activeVenues.size === 0 || activeVenues.has(item.venue);
+      });
+      if (visibleItems.length === 0) return null;
+
+      const tg = document.createElement('div');
+      tg.className = 'time-group';
+      const timeCol = document.createElement('div');
+      timeCol.className = 'time-col sans';
+      timeCol.textContent = g.time;
+      const cardsCol = document.createElement('div');
+      cardsCol.className = 'cards-col';
+      visibleItems.forEach(item => cardsCol.appendChild(buildCard(item)));
+
+      tg.appendChild(timeCol);
+      tg.appendChild(cardsCol);
+      return tg;
+    })
+    .filter(Boolean));
+}
+
+function renderVenuePanels(){
+  renderDayPanels(day => {
+    const rows = DATA.filter(d => d.date === day).slice().sort((a,b)=>timeToMinutes(a.time)-timeToMinutes(b.time));
+
+    return Object.keys(VENUE_COLOR)
+      .filter(v => activeVenues.size === 0 || activeVenues.has(v))
+      .map(v => {
+        const items = rows.filter(r => r.venue === v);
+        if (items.length === 0) return null;
+
+        const section = document.createElement('div');
+        section.className = 'venue-section';
+        section.style.setProperty('--venue-color', VENUE_COLOR[v]);
+
+        const head = document.createElement('div');
+        head.className = 'venue-section-head';
+        head.innerHTML = '<span class="dot"></span>' + venueShort(v);
+        section.appendChild(head);
+
+        const cardsCol = document.createElement('div');
+        cardsCol.className = 'cards-col';
+        items.forEach(item => cardsCol.appendChild(buildCard(item, {showTimeInline:true, showVenueInMeta:false})));
+        section.appendChild(cardsCol);
+
+        return section;
+      })
+      .filter(Boolean);
+  });
+}
+
+// A visitor's own picks, in chronological order per day. Reuses the same
+// day-tab scaffolding as Time/Venue; starring/unstarring anywhere in the app
+// (including here) re-renders and updates this view immediately.
+function renderMyScheduleView(){
+  renderDayPanels(
+    day => {
+      const items = DATA.filter(d => d.date === day && isStarred(d))
+        .slice()
+        .sort((a,b) => timeToMinutes(a.time) - timeToMinutes(b.time));
+      if (items.length === 0) return [];
+
+      const cardsCol = document.createElement('div');
+      cardsCol.className = 'cards-col';
+      items.forEach(item => cardsCol.appendChild(buildCard(item, {showTimeInline:true, showVenueInMeta:true})));
+      return [cardsCol];
+    },
+    day => 'You haven\u2019t starred anything for ' + DAY_LABEL[day].name + ' yet \u2014 tap the star on any event to add it here.'
+  );
+}
+
+// Each person's sessions, whatever their role in each (key -> sessions).
+function sessionsByPerson(){
+  const map = {};
+  DATA.forEach(item => item.roles.forEach(g => {
+    g.people.forEach(k => { (map[k] = map[k] || []); if (map[k].indexOf(item) === -1) map[k].push(item); });
+  }));
+  return map;
+}
+// Everyone a session names in this role.
+function peopleInRole(role){
+  const keys = [];
+  DATA.forEach(item => item.roles.forEach(g => { if (g.label === role) g.people.forEach(k => { if (keys.indexOf(k) === -1) keys.push(k); }); }));
+  return keys;
+}
+function byName(a, b){ return personName(a).localeCompare(personName(b)); }
+
+function renderBrowseView(slot){
+  if (VIEWS[slot].kind === 'directory') renderDirectoryView(slot);
+  else if (VIEWS[slot].kind === 'items') renderItemsView(slot);
+  else renderPeopleView(slot);
+}
+
+// Each program item once (a film, a class), with all its sessions under it.
+function renderItemsView(slot){
+  const view = VIEWS[slot];
+  const el = document.getElementById('content');
+  el.innerHTML = '';
+
+  const byItem = {};
+  DATA.forEach(item => { (byItem[item.item] = byItem[item.item] || []).push(item); });
+  const titleOf = id => (SCHEDULE.items[id] || {}).title || '';
+  const query = viewQuery[slot].trim().toLowerCase();
+  let ids = view.items.filter(id => byItem[id]).sort((a, b) => titleOf(a).localeCompare(titleOf(b)));
+  if (query) ids = ids.filter(id => matchesAll(titleOf(id), query));
+
+  document.getElementById(VIEW_ROWS[slot][2]).textContent = countText(view.text.count, ids.length);
+
+  if (ids.length === 0){
+    const note = document.createElement('p');
+    note.className = 'empty-note';
+    note.textContent = fillText(view.text.empty, 0, viewQuery[slot]);
+    el.appendChild(note);
+    return;
+  }
+
+  ids.forEach(id => {
+    const appearances = sortByDayThenTime(byItem[id]);
+
+    const block = document.createElement('div');
+    block.className = 'performer-block';
+
+    const head = document.createElement('div');
+    head.className = 'performer-head';
+    head.innerHTML = '<span class="performer-entry">' + escapeHtml(titleOf(id)) + '</span><span class="appear-count">' +
+      escapeHtml(countText(view.text.appearances, appearances.length)) + '</span>';
+    block.appendChild(head);
+
+    const cardsCol = document.createElement('div');
+    cardsCol.className = 'cards-col';
+    appearances.forEach(item => cardsCol.appendChild(buildCard(item, {showDayTag:true, showTimeInline:true})));
+    block.appendChild(cardsCol);
+
+    el.appendChild(block);
+  });
+}
+
+// Everyone a session names in the view's role, each with all their sessions.
+function renderPeopleView(slot){
+  const view = VIEWS[slot];
+  const el = document.getElementById('content');
+  el.innerHTML = '';
+
+  const map = sessionsByPerson();
+  const query = viewQuery[slot].trim().toLowerCase();
+  let keys = peopleInRole(view.role).sort(byName);
+  if (query) keys = keys.filter(k => matchesAll(personName(k), query));
+
+  document.getElementById(VIEW_ROWS[slot][2]).textContent = countText(view.text.count, keys.length);
+
+  if (keys.length === 0){
+    const note = document.createElement('p');
+    note.className = 'empty-note';
+    note.textContent = fillText(view.text.empty, 0, viewQuery[slot]);
+    el.appendChild(note);
+    return;
+  }
+
+  keys.forEach(key => {
+    const appearances = sortByDayThenTime(map[key]);
+
+    const block = document.createElement('div');
+    block.className = 'performer-block';
+
+    const head = document.createElement('div');
+    head.className = 'performer-head';
+    head.innerHTML = personNameHtml(key) + '<span class="appear-count">' + escapeHtml(countText(view.text.appearances, appearances.length)) + '</span>';
+    block.appendChild(head);
+
+    const cardsCol = document.createElement('div');
+    cardsCol.className = 'cards-col';
+    appearances.forEach(item => cardsCol.appendChild(buildCard(item, {showDayTag:true, showTimeInline:true})));
+    block.appendChild(cardsCol);
+
+    el.appendChild(block);
+  });
+}
+
+// Everyone registered in the view's role, on the schedule or not, each with
+// any sessions they have.
+function renderDirectoryView(slot){
+  const view = VIEWS[slot];
+  const el = document.getElementById('content');
+  el.innerHTML = '';
+
+  const map = sessionsByPerson();
+  const list = view.people.slice().sort(byName);
+  const query = viewQuery[slot].trim().toLowerCase();
+  const filtered = query ? list.filter(k => matchesAll(personName(k), query)) : list;
+
+  document.getElementById(VIEW_ROWS[slot][2]).textContent = countText(view.text.count, filtered.length);
+
+  if (view.text.note){
+    const note = document.createElement('p');
+    note.className = 'luthier-note';
+    note.textContent = view.text.note;
+    el.appendChild(note);
+  }
+
+  if (filtered.length === 0){
+    const empty = document.createElement('p');
+    empty.className = 'empty-note';
+    empty.textContent = fillText(view.text.empty, 0, viewQuery[slot]);
+    el.appendChild(empty);
+    return;
+  }
+
+  const grid = document.createElement('div');
+  grid.className = 'luthier-grid sans';
+
+  filtered.forEach(key => {
+    const p = PEOPLE[key];
+    const appearances = sortByDayThenTime(map[key] || []);
+
+    const card = document.createElement('div');
+    card.className = 'luthier-card' + (appearances.length ? ' has-events' : '');
+    card.dataset.lname = p.name;
+
+    let headHtml = '<p class="l-name">' + escapeHtml(p.name) + socialIconsHtml(p.name, p.links) + '</p>';
+    if (p.home) headHtml += '<p class="l-location">' + escapeHtml(p.home) + '</p>';
+    if (p.bio) headHtml += '<p class="l-bio">' + escapeHtml(p.bio) + '</p>';
+
+    if (appearances.length){
+      headHtml += '<div class="l-schedule-toggle sans"><span class="duration-pill">' +
+        escapeHtml(countText(view.text.appearances, appearances.length)) + '</span><span class="l-chevron">▾</span></div>';
+    }
+
+    card.innerHTML = headHtml;
+
+    if (appearances.length){
+      const scheduleWrap = document.createElement('div');
+      scheduleWrap.className = 'l-schedule';
+      const cardsCol = document.createElement('div');
+      cardsCol.className = 'cards-col';
+      appearances.forEach(item => cardsCol.appendChild(buildCard(item, {showDayTag:true, showTimeInline:true, showVenueInMeta:true})));
+      scheduleWrap.appendChild(cardsCol);
+      card.appendChild(scheduleWrap);
+
+      const toggle = card.querySelector('.l-schedule-toggle');
+      toggle.addEventListener('click', () => card.classList.toggle('open'));
+    }
+
+    grid.appendChild(card);
+  });
+  el.appendChild(grid);
+}
+
+VIEW_ROWS.forEach(([, input], slot) => {
+  document.getElementById(input).addEventListener('input', (e) => {
+    viewQuery[slot] = e.target.value;
+    renderBrowseView(slot);
+  });
+});
+
+// ---- Search ---------------------------------------------------------------
+// One control, in the header: it searches what is on screen. In a browse view
+// it goes to that view's own search (films by title, a role's people by name,
+// a directory's entries). Anywhere else it searches every session: titles,
+// people and their roles, classifications and venues (public data only).
+function sessionText(item){
+  const people = item.roles.map(g => g.label + ' ' + g.people.map(personName).join(' ')).join(' ');
+  return [item.title, item.types.join(' '), people, VENUE_SHORT[item.venue] || ''].join(' ');
+}
+function renderSessionSearch(){
+  const el = document.getElementById('content');
+  el.innerHTML = '';
+  const query = sessionQuery.trim();
+  const count = document.getElementById('sessionCount');
+  if (!query){
+    count.textContent = '';
+    const hint = document.createElement('p');
+    hint.className = 'empty-note';
+    hint.textContent = 'Search titles, people and places across the whole schedule.';
+    el.appendChild(hint);
+    return;
+  }
+  const found = sortByDayThenTime(DATA.filter(item => matchesAll(sessionText(item), query)));
+  count.textContent = found.length + (found.length === 1 ? ' session' : ' sessions');
+  if (!found.length){
+    const note = document.createElement('p');
+    note.className = 'empty-note';
+    note.textContent = 'Nothing matches "' + sessionQuery + '".';
+    el.appendChild(note);
+    return;
+  }
+  const cardsCol = document.createElement('div');
+  cardsCol.className = 'cards-col';
+  found.forEach(item => cardsCol.appendChild(buildCard(item, {showDayTag:true, showTimeInline:true, showVenueInMeta:true})));
+  el.appendChild(cardsCol);
+}
+function openSearch(){
+  const slot = viewSlot(sortMode);
+  if (slot >= 0){                          // a browse view searches its own entries
+    const input = document.getElementById(VIEW_ROWS[slot][1]);
+    input.scrollIntoView({ block: 'nearest' });
+    input.focus();
+    return;
+  }
+  sessionSearchOpen = !sessionSearchOpen;
+  render();
+  if (sessionSearchOpen) document.getElementById('sessionSearch').focus();
+  else document.getElementById('searchToggle').focus();
+}
+document.getElementById('searchToggle').addEventListener('click', openSearch);
+document.getElementById('sessionSearch').addEventListener('input', (e) => {
+  sessionQuery = e.target.value;
+  renderSessionSearch();
+});
+document.getElementById('sessionSearch').addEventListener('keydown', (e) => {
+  if (e.key === 'Escape'){ sessionSearchOpen = false; render(); document.getElementById('searchToggle').focus(); }
+});
+
+// ---- Auto-resize support for iframe embeds -------------------------------
+// When this page is embedded via <iframe> (e.g. on a WordPress or Squarespace
+// site), the iframe's own document scrolls independently of the outer page,
+// which creates a frustrating "stuck inside the box" feel. This tells the
+// parent page how tall the content actually is, so the embedding page can
+// resize the iframe to match and avoid a nested scrollbar entirely. Harmless
+// if the page isn't embedded at all -- postMessage just goes nowhere useful.
+function notifyParentOfHeight(){
+  try {
+    window.parent.postMessage(
+      { type: 'rmaf-schedule-resize', height: document.documentElement.scrollHeight },
+      '*'
+    );
+  } catch(e) { /* not embedded, or cross-origin restriction -- nothing to do */ }
+}
+if (window.ResizeObserver){
+  new ResizeObserver(notifyParentOfHeight).observe(document.documentElement);
+} else {
+  setInterval(notifyParentOfHeight, 500);
+}
+window.addEventListener('load', notifyParentOfHeight);
+notifyParentOfHeight();
+// ---- Happening Now --------------------------------------------------------
+// Cards are marked live when built; this keeps them current as time passes by
+// toggling a class on the existing cards (no re-render, so open cards and
+// scroll position are untouched). Runs on each minute boundary and whenever
+// the page becomes visible again (phones pause timers in background tabs).
+let liveTimer = null;
+function refreshLiveState(){
+  const now = getNow();
+  document.querySelectorAll('#content .card[data-id]').forEach(card => {
+    const t = EVENT_TIMES.get(card.dataset.id);
+    card.classList.toggle('is-live', !!t && t.start <= now && now < t.end);
+  });
+  updateTestClockBanner();
+}
+function scheduleLiveTick(){
+  clearTimeout(liveTimer);
+  const wait = 60000 - (getNow() % 60000) + 250;
+  liveTimer = setTimeout(() => { refreshLiveState(); scheduleLiveTick(); }, wait);
+}
+
+// ---- Preserving what the visitor is looking at across a re-render ---------
+// Each rendered card gets a view key (event id + occurrence, since one event
+// can appear under several performers); luthier cards are keyed by name.
+function assignViewKeys(){
+  const seen = {};
+  document.querySelectorAll('#content .card[data-id]').forEach(card => {
+    const id = card.dataset.id;
+    seen[id] = (seen[id] || 0) + 1;
+    card.dataset.vkey = id + '#' + seen[id];
+  });
+  document.querySelectorAll('#content .luthier-card[data-lname]').forEach(card => {
+    card.dataset.vkey = 'L:' + card.dataset.lname;
+  });
+}
+function findByVkey(key){
+  const els = document.querySelectorAll('#content [data-vkey]');
+  for (let i = 0; i < els.length; i++) if (els[i].dataset.vkey === key) return els[i];
+  return null;
+}
+function captureViewState(){
+  assignViewKeys();
+  const open = Array.from(document.querySelectorAll('#content .card.open, #content .luthier-card.open'))
+    .map(el => el.dataset.vkey).filter(Boolean);
+  let anchor = null, anchorTop = 0;
+  const els = document.querySelectorAll('#content [data-vkey]');
+  for (let i = 0; i < els.length; i++){
+    const r = els[i].getBoundingClientRect();
+    if (r.height > 0 && r.bottom > 0){ anchor = els[i].dataset.vkey; anchorTop = r.top; break; }
+  }
+  return { open, anchor, anchorTop, scrollY: window.scrollY };
+}
+// Returns true only if every open card and the scroll anchor were found again.
+function restoreViewState(state){
+  assignViewKeys();
+  const root = document.documentElement;
+  root.classList.add('no-anim');
+  let ok = true;
+  state.open.forEach(key => {
+    const el = findByVkey(key);
+    if (el) el.classList.add('open'); else ok = false;
+  });
+  if (state.anchor){
+    const el = findByVkey(state.anchor);
+    if (el) window.scrollTo(0, window.scrollY + el.getBoundingClientRect().top - state.anchorTop);
+    else ok = false;
+  } else {
+    window.scrollTo(0, state.scrollY);
+  }
+  requestAnimationFrame(() => requestAnimationFrame(() => root.classList.remove('no-anim')));
+  return ok;
+}
+
+// ---- "Last updated" line and notices --------------------------------------
+// The timestamp is the schedule DATA's publish time (schedule.json →
+// published_at), shown in the event's timezone. It is not the page-load or
+// build time.
+let connection = navigator.onLine === false ? 'offline' : 'unknown';
+let pendingDoc = null;          // newer schedule received but not yet shown
+
+function updateStatusLine(){
+  const el = document.getElementById('updatedLine');
+  if (!el || !SCHEDULE) return;
+  const stamp = SCHEDULE.published_at ? formatEventTime(Date.parse(SCHEDULE.published_at), true) : null;
+  let html;
+  if (pendingDoc){
+    html = 'A newer schedule is ready. <button type="button" class="linklike" data-action="refresh">Refresh</button>';
+  } else if (connection === 'offline'){
+    html = 'Offline' + (stamp ? ' · showing schedule updated ' + escapeHtml(stamp) : '');
+  } else {
+    html = stamp ? 'Schedule updated ' + escapeHtml(stamp) : '';
+  }
+  el.innerHTML = html;
+  el.hidden = !html;
+  el.classList.toggle('is-offline', connection === 'offline' && !pendingDoc);
+}
+
+let toastTimer = null;
+function showToast(html, sticky){
+  const el = document.getElementById('toast');
+  clearTimeout(toastTimer);
+  el.innerHTML = html;
+  el.classList.add('show');
+  if (!sticky) toastTimer = setTimeout(() => el.classList.remove('show'), 5000);
+}
+function hideToast(){ document.getElementById('toast').classList.remove('show'); }
+
+document.addEventListener('click', e => {
+  const btn = e.target.closest && e.target.closest('[data-action="refresh"]');
+  if (btn){ e.preventDefault(); refreshNow(); }
+});
+
+// Reload onto the newest schedule (already stored). Asks the service worker to
+// refetch the page itself first, in case the new data needs newer page code.
+async function refreshNow(){
+  try {
+    const ctl = navigator.serviceWorker && navigator.serviceWorker.controller;
+    if (ctl){
+      await new Promise(resolve => {
+        const ch = new MessageChannel();
+        ch.port1.onmessage = resolve;
+        ctl.postMessage({ type: 'refresh-shell' }, [ch.port2]);
+        setTimeout(resolve, 4000);
+      });
+    }
+  } catch(e){}
+  location.reload();
+}
+
+// ---- Checking for a newer published schedule ------------------------------
+// version.json is tiny and is fetched straight from the network (never from
+// any cache). Only when it reports a newer version is schedule.json itself
+// downloaded; it is stored for offline use and then shown.
+const FILES = window.ROTAPAS_FILES;
+let checking = false, lastCheckAt = 0;
+
+async function storeData(text, version){
+  if (!('caches' in window) || window.ROTAPAS_PREVIEW) return;   // previews keep nothing (N30)
+  try {
+    const cache = await caches.open(FILES.dataCache);
+    const existing = await cache.match(FILES.data);
+    if (existing){
+      const cur = JSON.parse(await existing.text());
+      if (cur && cur.version >= version) return;
+    }
+    await cache.put(FILES.data, new Response(text, { headers: { 'Content-Type': 'application/json' } }));
+  } catch(e){ /* storage unavailable (private mode etc.) — still works online */ }
+}
+
+async function checkForUpdate(){
+  if (checking) return;
+  checking = true;
+  lastCheckAt = Date.now();
+  try {
+    let res;
+    try { res = await fetch(FILES.version + '?t=' + Date.now(), { cache: 'no-store' }); }
+    catch(e){ connection = 'offline'; return; }
+    connection = 'online';
+    if (!res.ok) return;
+    const v = await res.json();
+    const have = pendingDoc ? pendingDoc.version : SCHEDULE.version;
+    if (!(typeof v.version === 'number' && v.version > have)) return;
+
+    const dres = await fetch(FILES.data + '?v=' + v.version, { cache: 'no-store' });
+    if (!dres.ok) return;
+    const text = await dres.text();
+    const doc = JSON.parse(text);
+    // A CDN can briefly serve an older copy; ignore it and try again later.
+    if (!doc || typeof doc.version !== 'number' || doc.version < v.version || doc.version <= have) return;
+    await storeData(text, doc.version);
+    receiveUpdate(doc);
+  } catch(e){
+    /* malformed response — keep the current schedule, try again later */
+  } finally {
+    checking = false;
+    updateStatusLine();
+  }
+}
+
+// A newer schedule has been downloaded and stored. Show it in place if that
+// can be done without disturbing the visitor; otherwise offer a Refresh.
+function receiveUpdate(doc){
+  pendingDoc = doc;
+  if (!isUsableSchedule(doc)){        // needs newer page code: reload to get it
+    updateStatusLine();
+    showToast('Schedule updated. <button type="button" class="linklike" data-action="refresh">Refresh</button>', true);
+    return;
+  }
+  whenIdle(applyPendingUpdate);
+}
+
+function applyPendingUpdate(){
+  const doc = pendingDoc;
+  if (!doc) return;
+  const prevDoc = SCHEDULE, prevDay = activeDay;
+  const state = captureViewState();
+  document.documentElement.classList.add('no-anim');
+
+  applyData(doc);
+  normalizeStars();
+  if (!DAYS.includes(activeDay)) activeDay = todaysFestivalDay();
+  render();
+
+  if (restoreViewState(state)){
+    pendingDoc = null;
+    updateStatusLine();
+    const stamp = doc.published_at ? formatEventTime(Date.parse(doc.published_at), false) : '';
+    showToast('Schedule updated' + (stamp ? ' · ' + escapeHtml(stamp) : ''));
+  } else {
+    // Something the visitor had open or was looking at changed. Put the page
+    // back exactly as it was (same task, so nothing is painted in between)
+    // and let them choose when to refresh. The new data is already stored.
+    applyData(prevDoc);
+    normalizeStars();
+    activeDay = prevDay;
+    render();
+    restoreViewState(state);
+    updateStatusLine();
+    showToast('Schedule updated. <button type="button" class="linklike" data-action="refresh">Refresh</button>', true);
+  }
+}
+
+// Wait until the visitor isn't mid-gesture: no touch held, and no scrolling,
+// tapping or typing for 1.5 s. Hidden tabs update immediately.
+let lastInteraction = 0, pointersDown = 0;
+['pointerdown', 'touchstart'].forEach(t => addEventListener(t, () => { pointersDown++; lastInteraction = Date.now(); }, { passive: true, capture: true }));
+['pointerup', 'pointercancel', 'touchend', 'touchcancel'].forEach(t => addEventListener(t, () => { pointersDown = Math.max(0, pointersDown - 1); lastInteraction = Date.now(); }, { passive: true, capture: true }));
+['scroll', 'wheel', 'keydown', 'touchmove'].forEach(t => addEventListener(t, () => { lastInteraction = Date.now(); }, { passive: true, capture: true }));
+function whenIdle(fn){
+  const tryRun = () => {
+    if (document.hidden || (pointersDown === 0 && Date.now() - lastInteraction >= 1500)) fn();
+    else setTimeout(tryRun, 500);
+  };
+  tryRun();
+}
+
+// ---- Boot -----------------------------------------------------------------
+function showLoadError(){
+  document.getElementById('content').innerHTML =
+    '<p class="empty-note">The schedule couldn\u2019t be loaded. Check your connection, then ' +
+    '<button type="button" class="linklike" data-action="refresh">try again</button>.</p>';
+}
+
+async function boot(){
+  let initial;
+  try { initial = await window.ROTAPAS_INITIAL; } catch(e){ showLoadError(); return; }
+  let doc = null;
+  try { doc = JSON.parse(initial.text); } catch(e){}
+  if (!isUsableSchedule(doc) && initial.source === 'cache'){
+    // Stored copy is unreadable by this page version; try the network.
+    try { const r = await fetch(FILES.data + '?t=' + Date.now(), { cache: 'no-store' });
+          initial = { text: await r.text(), source: 'network' }; doc = JSON.parse(initial.text); } catch(e){}
+  }
+  if (!isUsableSchedule(doc)){ showLoadError(); return; }
+
+  applyData(doc);
+  initTestClock();
+  loadStarred();
+  activeDay = todaysFestivalDay();
+  render();
+  updateStatusLine();
+  scheduleLiveTick();
+  if (initial.source === 'network') storeData(initial.text, doc.version);
+
+  // Update checks: now, when connectivity returns, when the page is shown
+  // again, and every 5 minutes while it is open and visible.
+  checkForUpdate();
+  addEventListener('online', () => { connection = 'unknown'; checkForUpdate(); });
+  addEventListener('offline', () => { connection = 'offline'; updateStatusLine(); });
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden) return;
+    refreshLiveState(); scheduleLiveTick();
+    if (Date.now() - lastCheckAt > 60000) checkForUpdate();
+    if (pendingDoc) whenIdle(applyPendingUpdate);
+  });
+  addEventListener('pageshow', e => { if (e.persisted){ refreshLiveState(); scheduleLiveTick(); checkForUpdate(); } });
+  setInterval(() => { if (!document.hidden) checkForUpdate(); }, 5 * 60 * 1000);
+
+  registerServiceWorker();
+}
+
+// Offline support. The service worker stores the page, logo, icons and the
+// schedule data after the first visit. Page-code updates are picked up in the
+// background and take effect on the next visit; they never reload a page
+// someone is reading.
+function registerServiceWorker(){
+  if (!('serviceWorker' in navigator)) return;
+  if (window.ROTAPAS_PREVIEW) return;   // previews never install offline or update support (N30)
+  const secure = location.protocol === 'https:' || location.hostname === 'localhost' || location.hostname === '127.0.0.1';
+  if (!secure) return;
+  const go = () => navigator.serviceWorker.register('sw.js', { updateViaCache: 'none' }).catch(() => {});
+  if (document.readyState === 'complete') go(); else addEventListener('load', go);
+}
+
+boot();
+</script>
+
+</body>
+</html>

@@ -1,0 +1,604 @@
+{
+  "schema": 3,
+  "version": 1,
+  "published_at": "2026-10-08T16:00:00Z",
+  "content_hash": "sha256-c914903761ae1dc7de4717c99aafae02d121391c663796c5b2d8f687176d42dd",
+  "event": {
+    "name": "Monteleone: Art of the Guitar Festival",
+    "slug": "monteleone-art-of-the-guitar-festival",
+    "timezone": "America/New_York",
+    "storage_namespace": "monteleoneartoftheguitarfestival",
+    "dates_line": "OCTOBER 15–17, 2026 · STONY BROOK, NEW YORK",
+    "website": "https://thejazzloft.org/2026-monteleone-guitar-festival/",
+    "website_host": "thejazzloft.org"
+  },
+  "venues": [
+    {
+      "id": "v_6a123e1007",
+      "name": "The Jazz Loft",
+      "short": "The Jazz Loft",
+      "address": "275 Christian Avenue, Stony Brook, NY 11790"
+    }
+  ],
+  "days": [
+    {
+      "key": "Thursday, October 15",
+      "date": "2026-10-15",
+      "name": "Thursday",
+      "short": "Thu",
+      "label": "Oct 15"
+    },
+    {
+      "key": "Friday, October 16",
+      "date": "2026-10-16",
+      "name": "Friday",
+      "short": "Fri",
+      "label": "Oct 16"
+    },
+    {
+      "key": "Saturday, October 17",
+      "date": "2026-10-17",
+      "name": "Saturday",
+      "short": "Sat",
+      "label": "Oct 17"
+    }
+  ],
+  "events": [
+    {
+      "id": "e_d299e927f7508d",
+      "item": "item_6569652e40c4ba",
+      "date": "Thursday, October 15",
+      "time": "6:00 PM",
+      "end_time": "7:00 PM",
+      "duration_label": "1 hr",
+      "end_kind": "scheduled",
+      "venue": "v_6a123e1007",
+      "address": "275 Christian Avenue, Stony Brook, NY 11790",
+      "note": null,
+      "price": null,
+      "roles": []
+    },
+    {
+      "id": "e_e983e2789b4f3d",
+      "item": "item_8d8e70ed3a1d81",
+      "date": "Thursday, October 15",
+      "time": "7:00 PM",
+      "end_time": null,
+      "duration_label": null,
+      "end_kind": "unknown",
+      "venue": "v_6a123e1007",
+      "address": "275 Christian Avenue, Stony Brook, NY 11790",
+      "note": null,
+      "price": null,
+      "roles": []
+    },
+    {
+      "id": "e_1afd693fa5f379",
+      "item": "item_2b5c1447eb19c3",
+      "date": "Friday, October 16",
+      "time": "5:00 PM",
+      "end_time": "7:00 PM",
+      "duration_label": "2 hrs",
+      "end_kind": "scheduled",
+      "venue": "v_6a123e1007",
+      "address": "275 Christian Avenue, Stony Brook, NY 11790",
+      "note": null,
+      "price": null,
+      "roles": [
+        {
+          "label": "Performer",
+          "people": [
+            "p1",
+            "p2",
+            "p3"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "e_db2eaf17e76e6d",
+      "item": "item_e96e71d72405b1",
+      "date": "Friday, October 16",
+      "time": "7:00 PM",
+      "end_time": null,
+      "duration_label": null,
+      "end_kind": "unknown",
+      "venue": "v_6a123e1007",
+      "address": "275 Christian Avenue, Stony Brook, NY 11790",
+      "note": null,
+      "price": null,
+      "roles": [
+        {
+          "label": "Performer",
+          "people": [
+            "p4",
+            "p2",
+            "p3"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "e_cd64ceca4c67d8",
+      "item": "item_1193a8a5989aee",
+      "date": "Saturday, October 17",
+      "time": "12:00 PM",
+      "end_time": "2:00 PM",
+      "duration_label": "2 hrs",
+      "end_kind": "scheduled",
+      "venue": "v_6a123e1007",
+      "address": "275 Christian Avenue, Stony Brook, NY 11790",
+      "note": null,
+      "price": null,
+      "roles": [
+        {
+          "label": "Performer",
+          "people": [
+            "p5",
+            "p6"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "e_2077f99e7dda30",
+      "item": "item_358e98ef3e6956",
+      "date": "Saturday, October 17",
+      "time": "2:00 PM",
+      "end_time": "5:00 PM",
+      "duration_label": "3 hrs",
+      "end_kind": "scheduled",
+      "venue": "v_6a123e1007",
+      "address": "275 Christian Avenue, Stony Brook, NY 11790",
+      "note": null,
+      "price": null,
+      "roles": [
+        {
+          "label": "Performer",
+          "people": [
+            "p7",
+            "p8",
+            "p5",
+            "p9"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "e_41df0a8bf33d20",
+      "item": "item_b34e74c69e08c2",
+      "date": "Saturday, October 17",
+      "time": "5:00 PM",
+      "end_time": "7:00 PM",
+      "duration_label": "2 hrs",
+      "end_kind": "scheduled",
+      "venue": "v_6a123e1007",
+      "address": "275 Christian Avenue, Stony Brook, NY 11790",
+      "note": null,
+      "price": null,
+      "roles": [
+        {
+          "label": "Performer",
+          "people": [
+            "p10",
+            "p11"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "e_d75165386882e8",
+      "item": "item_a790946a2f4b6b",
+      "date": "Saturday, October 17",
+      "time": "7:00 PM",
+      "end_time": null,
+      "duration_label": null,
+      "end_kind": "unknown",
+      "venue": "v_6a123e1007",
+      "address": "275 Christian Avenue, Stony Brook, NY 11790",
+      "note": null,
+      "price": null,
+      "roles": [
+        {
+          "label": "Performer",
+          "people": [
+            "p12",
+            "p13"
+          ]
+        }
+      ]
+    }
+  ],
+  "items": {
+    "item_6569652e40c4ba": {
+      "title": "Opening Reception",
+      "types": [],
+      "roles": []
+    },
+    "item_8d8e70ed3a1d81": {
+      "title": "Select Performances",
+      "types": [],
+      "roles": []
+    },
+    "item_2b5c1447eb19c3": {
+      "title": "Jocelyn Gould Trio",
+      "types": [],
+      "roles": [
+        {
+          "label": "Performer",
+          "people": [
+            "p1",
+            "p2",
+            "p3"
+          ]
+        }
+      ]
+    },
+    "item_e96e71d72405b1": {
+      "title": "Ted Ludwig Trio",
+      "types": [],
+      "roles": [
+        {
+          "label": "Performer",
+          "people": [
+            "p4",
+            "p2",
+            "p3"
+          ]
+        }
+      ]
+    },
+    "item_1193a8a5989aee": {
+      "title": "Cookin’ with Wood",
+      "types": [],
+      "roles": [
+        {
+          "label": "Performer",
+          "people": [
+            "p5",
+            "p6"
+          ]
+        }
+      ]
+    },
+    "item_358e98ef3e6956": {
+      "title": "The Tone-Bars",
+      "types": [],
+      "roles": [
+        {
+          "label": "Performer",
+          "people": [
+            "p7",
+            "p8",
+            "p5",
+            "p9"
+          ]
+        }
+      ]
+    },
+    "item_b34e74c69e08c2": {
+      "title": "Paul Ricci + Mafalda Minnozzi",
+      "types": [],
+      "roles": [
+        {
+          "label": "Performer",
+          "people": [
+            "p10",
+            "p11"
+          ]
+        }
+      ]
+    },
+    "item_a790946a2f4b6b": {
+      "title": "Antoine Boyer & Yeore Kim",
+      "types": [],
+      "roles": [
+        {
+          "label": "Performer",
+          "people": [
+            "p12",
+            "p13"
+          ]
+        }
+      ]
+    }
+  },
+  "people": {
+    "p1": {
+      "name": "Jocelyn Gould",
+      "links": [
+        {
+          "service": "website",
+          "url": "https://jocelyngould.com/",
+          "label": "Website"
+        },
+        {
+          "service": "instagram",
+          "url": "https://instagram.com/jocelyngouldmusic",
+          "label": "Instagram"
+        },
+        {
+          "service": "facebook",
+          "url": "https://facebook.com/jocelyngouldmusic",
+          "label": "Facebook"
+        },
+        {
+          "service": "youtube",
+          "url": "https://youtube.com/@jocelyngouldmusic",
+          "label": "YouTube"
+        },
+        {
+          "service": "tiktok",
+          "url": "https://tiktok.com/@jocelyngouldmusic",
+          "label": "TikTok"
+        }
+      ]
+    },
+    "p2": {
+      "name": "Pat Bianchi",
+      "links": [
+        {
+          "service": "website",
+          "url": "https://patbianchi.com/",
+          "label": "Website"
+        }
+      ]
+    },
+    "p3": {
+      "name": "Steve Pruitt"
+    },
+    "p4": {
+      "name": "Ted Ludwig",
+      "links": [
+        {
+          "service": "facebook",
+          "url": "https://www.facebook.com/tedludwigjazz/",
+          "label": "Facebook"
+        },
+        {
+          "service": "instagram",
+          "url": "https://www.instagram.com/tedludwigjazz/",
+          "label": "Instagram"
+        },
+        {
+          "service": "spotify",
+          "url": "https://open.spotify.com/artist/0cyqWumlYCxrN2Olg5Do2D",
+          "label": "Spotify"
+        },
+        {
+          "service": "website",
+          "url": "https://www.tedludwig.com/",
+          "label": "Website"
+        },
+        {
+          "service": "youtube",
+          "url": "https://www.youtube.com/@tedludwig1451",
+          "label": "YouTube"
+        }
+      ]
+    },
+    "p5": {
+      "name": "John Monteleone",
+      "links": [
+        {
+          "service": "website",
+          "url": "https://www.monteleone.net/",
+          "label": "Website"
+        }
+      ],
+      "bio": "Recognized as one of the finest living archtop guitar and mandolin makers in the world today, Monteleone has been at the forefront of innovative archtop instrument making for many years. A resident of Islip, New York, he has been pushing the luthier envelope for more than 40 years with new and elegant designs."
+    },
+    "p6": {
+      "name": "G.E. Smith",
+      "links": [
+        {
+          "service": "website",
+          "url": "https://gesmithmusic.com/",
+          "label": "Website"
+        },
+        {
+          "service": "instagram",
+          "url": "https://www.instagram.com/gesmithmusic/",
+          "label": "Instagram"
+        },
+        {
+          "service": "facebook",
+          "url": "https://www.facebook.com/gesmithmusic",
+          "label": "Facebook"
+        }
+      ]
+    },
+    "p7": {
+      "name": "Steve Salerno"
+    },
+    "p8": {
+      "name": "Dean Johnson"
+    },
+    "p9": {
+      "name": "Samantha Monteleone"
+    },
+    "p10": {
+      "name": "Paul Ricci",
+      "links": [
+        {
+          "service": "facebook",
+          "url": "https://www.facebook.com/paulricciguitarist/",
+          "label": "Facebook"
+        },
+        {
+          "service": "instagram",
+          "url": "https://www.instagram.com/paulriccisound/",
+          "label": "Instagram"
+        },
+        {
+          "service": "spotify",
+          "url": "https://open.spotify.com/artist/7HdQ4yojjuKqlq00rWndwW",
+          "label": "Spotify"
+        },
+        {
+          "service": "website",
+          "url": "https://empathiajazz.com.br/bio/paul-ricci/",
+          "label": "Website"
+        },
+        {
+          "service": "youtube",
+          "url": "https://www.youtube.com/@eMPathiajazzduo",
+          "label": "YouTube"
+        }
+      ]
+    },
+    "p11": {
+      "name": "Mafalda Minnozzi",
+      "links": [
+        {
+          "service": "website",
+          "url": "https://mafaldaminnozzi.com/",
+          "label": "Website"
+        },
+        {
+          "service": "instagram",
+          "url": "https://www.instagram.com/mafaldaminnozzisinger/",
+          "label": "Instagram"
+        },
+        {
+          "service": "facebook",
+          "url": "https://www.facebook.com/mafaldaminnozzi",
+          "label": "Facebook"
+        },
+        {
+          "service": "youtube",
+          "url": "https://www.youtube.com/user/mafaldaminnozzi",
+          "label": "YouTube"
+        },
+        {
+          "service": "spotify",
+          "url": "https://open.spotify.com/artist/0DbMFUpxPRWwFfHhMDNHhG",
+          "label": "Spotify"
+        }
+      ]
+    },
+    "p12": {
+      "name": "Antoine Boyer",
+      "links": [
+        {
+          "service": "website",
+          "url": "https://www.antoineboyermusic.com/",
+          "label": "Website"
+        },
+        {
+          "service": "instagram",
+          "url": "https://www.instagram.com/antoineboyermusic/",
+          "label": "Instagram"
+        },
+        {
+          "service": "facebook",
+          "url": "https://www.facebook.com/antoineboyermusic/",
+          "label": "Facebook"
+        },
+        {
+          "service": "youtube",
+          "url": "https://www.youtube.com/@AntoineBoyerMusic",
+          "label": "YouTube"
+        },
+        {
+          "service": "spotify",
+          "url": "https://open.spotify.com/artist/2UKlumP0ZZDFcnuOSeNxHP",
+          "label": "Spotify"
+        }
+      ]
+    },
+    "p13": {
+      "name": "Yeore Kim",
+      "links": [
+        {
+          "service": "youtube",
+          "url": "https://www.youtube.com/channel/UCfFkS5hmOn6BCgU1FCO_IEQ",
+          "label": "YouTube"
+        }
+      ]
+    },
+    "p14": {
+      "name": "John D’Angelico",
+      "bio": "New York archtop maker (1905–1964). He learned the trade as a boy in his great-uncle Raphael Ciani’s shop in Little Italy and opened his own at 40 Kenmare Street in 1932, building roughly 1,200 instruments in an Art Deco style all his own; the New Yorker became his flagship. His apprentice James D’Aquisto carried on his work."
+    },
+    "p15": {
+      "name": "Cris Mirabella",
+      "links": [
+        {
+          "service": "website",
+          "url": "https://www.mirabellaguitars.com/",
+          "label": "Website"
+        },
+        {
+          "service": "instagram",
+          "url": "https://www.instagram.com/mirabellaguitars/",
+          "label": "Instagram"
+        },
+        {
+          "service": "facebook",
+          "url": "https://www.facebook.com/Mirabellaguitar/",
+          "label": "Facebook"
+        }
+      ],
+      "bio": "Long Island archtop maker who apprenticed for some fifteen years among New York builders and players, influenced by James D’Aquisto and John Monteleone, before opening Mirabella Guitars and Restorations in 1997. Known for his archtops, among them the Trap Door, and for restoring D’Angelico, D’Aquisto and golden-era Gibson and Epiphone guitars."
+    },
+    "p16": {
+      "name": "Manzer Guitars",
+      "links": [
+        {
+          "service": "website",
+          "url": "https://manzer.com/",
+          "label": "Website"
+        }
+      ],
+      "bio": "The workshop of Canadian luthier Linda Manzer, who trained with Jean Larrivée and with James D’Aquisto and builds a small number of archtop, flattop and harp guitars by hand each year. Her guitars are played by Pat Metheny, for whom she built the 42-string Pikasso, Bruce Cockburn and Julian Lage. She is an Officer of the Order of Canada."
+    }
+  },
+  "views": [
+    {
+      "kind": "people",
+      "role": "Performer",
+      "label": "Performer",
+      "caption": "Performer",
+      "on_card": false,
+      "text": {
+        "search": "Search by name…",
+        "empty": "Nothing matches \"{q}\".",
+        "count": {
+          "one": "{n} listed",
+          "other": "{n} listed"
+        },
+        "appearances": {
+          "one": "{n} session",
+          "other": "{n} sessions"
+        }
+      }
+    },
+    {
+      "kind": "directory",
+      "role": "Luthier",
+      "label": "Luthier",
+      "caption": "Luthier",
+      "on_card": false,
+      "text": {
+        "search": "Search by name…",
+        "empty": "Nothing matches \"{q}\".",
+        "count": {
+          "one": "{n} listed",
+          "other": "{n} listed"
+        },
+        "appearances": {
+          "one": "{n} session on the schedule",
+          "other": "{n} sessions on the schedule"
+        }
+      },
+      "people": [
+        "p5",
+        "p14",
+        "p15",
+        "p16"
+      ]
+    }
+  ],
+  "retired": {}
+}
